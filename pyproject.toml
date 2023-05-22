@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xtrax"
+readme = "README.md"
+requires-python = ">=3.10"
+dynamic = ["version", "dependencies"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.setuptools.dynamic]
+version = { attr = "xtrax.__version__" }
+dependencies = { file = ["requirements.txt"] }
