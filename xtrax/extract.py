@@ -5,7 +5,6 @@ from xtrax.transform import TargetTransformer, EventTransformer
 
 
 class FeatureExtractor(BaseEstimator, TransformerMixin):
-
     def __init__(self, schema: dict, users: str, items: str):
         super().__init__()
         self._schema = schema
@@ -14,10 +13,11 @@ class FeatureExtractor(BaseEstimator, TransformerMixin):
 
         self._user_transformer = TargetTransformer(schema, "user")
         self._item_transformer = TargetTransformer(schema, "item")
-        self._event_transformer = EventTransformer(schema, self._timestamp, self._window_size)
+        self._event_transformer = EventTransformer(
+            schema, self._timestamp, self._window_size
+        )
 
     def fit(self, X, **fit_params):
-
         def fit_transformer(inputs: Dataset, transformer: TargetTransformer):
             input_attr: str = getattr(self, f"_{inputs.__name__.lower()}")
             x = inputs.load(input_attr, schema=self._schema)
@@ -32,14 +32,15 @@ class FeatureExtractor(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        events = self._encode(self._user_transformer)(X)
-        events = self._encode(self._item_transformer, events)
-        events = self._event_transformer.transform(events)
-        return events
+        interactions = self._encode(self._user_transformer)(X)
+        interactions = self._encode(self._item_transformer, interactions)
+        interactions = self._event_transformer.transform(interactions)
+        return interactions
 
     def _encode(transformer):
         def _encode(data):
             encoder, index = transformer.encoder
             data[:, index] = encoder.transform(data[:, index])
             return data
+
         return _encode
