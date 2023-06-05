@@ -2,6 +2,7 @@ from sklearn.preprocessing import OrdinalEncoder
 from sklearn.pipeline import make_pipeline
 
 from .min_max import MinMaxScaler
+from .one_hot import OneHotEncoder
 
 
 class BaseEncoder(tuple):
