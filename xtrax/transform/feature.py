@@ -30,6 +30,6 @@ class FeatureTransformer(ColumnTransformer):
     def _get_transformers(schema: dict[str, str], header: list[str]):
         feature_indexes = {feature_type: [] for feature_type in _ENCODER_MAPPING.keys()}
         for feature, feature_type in schema.items():
-            index = np.where(np.array(header) == feature)[0].tolist()
-        
-
+            mask = np.array(header) == feature
+            feature_indexes[feature_type] += np.where(mask)[0].tolist()
+        return feature_indexes
