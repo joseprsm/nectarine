@@ -1,7 +1,7 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from xtrax.data import Dataset, Users, Items
-from xtrax.transform import TargetTransformer, EventTransformer
+from xtrax.transform import FeatureTransformer, EventTransformer
 
 
 class FeatureExtractor(BaseEstimator, TransformerMixin):
@@ -11,14 +11,14 @@ class FeatureExtractor(BaseEstimator, TransformerMixin):
         self._users = users
         self._items = items
 
-        self._user_transformer = TargetTransformer(schema, "user")
-        self._item_transformer = TargetTransformer(schema, "item")
+        self._user_transformer = FeatureTransformer(schema, "user")
+        self._item_transformer = FeatureTransformer(schema, "item")
         self._event_transformer = EventTransformer(
             schema, self._timestamp, self._window_size
         )
 
     def fit(self, X, **fit_params):
-        def fit_transformer(inputs: Dataset, transformer: TargetTransformer):
+        def fit_transformer(inputs: Dataset, transformer: FeatureTransformer):
             input_attr: str = getattr(self, f"_{inputs.__name__.lower()}")
             x = inputs.load(input_attr, schema=self._schema)
             transformer.fit(x).transform(x)

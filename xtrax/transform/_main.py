@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.compose import ColumnTransformer
 
-from xtrax.encode import CategoryEncoder, IDEncoder, NumberEncoder
+from .features import CategoryEncoder, IDEncoder, NumberEncoder
 
 _ENCODER_MAPPING = {
     "category": CategoryEncoder,

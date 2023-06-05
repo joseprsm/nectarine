@@ -1,1 +1,1 @@
-from .feature import FeatureTransformer
+from ._main import FeatureTransformer
