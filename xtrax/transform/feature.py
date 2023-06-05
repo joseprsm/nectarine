@@ -27,7 +27,7 @@ class FeatureTransformer(ColumnTransformer):
         return super().fit(X)
 
     @staticmethod
-    def _get_transformers(schema: dict[str, str], header: list[str]):
+    def _get_feature_indexes(schema: dict[str, str], header: list[str]):
         feature_indexes = {feature_type: [] for feature_type in _ENCODER_MAPPING.keys()}
         for feature, feature_type in schema.items():
             mask = np.array(header) == feature
