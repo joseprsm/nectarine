@@ -7,7 +7,7 @@ from xtrax.encode import CategoryEncoder, IDEncoder, NumberEncoder
 _ENCODER_MAPPING = {
     "category": CategoryEncoder,
     "number": NumberEncoder,
-    "id": IDEncoder
+    "id": IDEncoder,
 }
 
 
@@ -25,6 +25,14 @@ class FeatureTransformer(ColumnTransformer):
             else self.transformers
         )
         return super().fit(X)
+
+    @classmethod
+    def _get_transformers(cls, schema: dict[str, str], header: list[str]):
+        feature_indexes = cls._get_feature_indexes(schema, header)
+        return [
+            _ENCODER_MAPPING[feature_type](idx)
+            for feature_type, idx in feature_indexes.items()
+        ]
 
     @staticmethod
     def _get_feature_indexes(schema: dict[str, str], header: list[str]):
