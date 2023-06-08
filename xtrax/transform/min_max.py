@@ -4,7 +4,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class MinMaxScaler(BaseEstimator, TransformerMixin):
-
     _min: int
     _max: int
 

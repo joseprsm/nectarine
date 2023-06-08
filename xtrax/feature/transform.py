@@ -2,7 +2,9 @@ import numpy as np
 
 from sklearn.compose import ColumnTransformer
 
-from .features import CategoryEncoder, IDEncoder, NumberEncoder
+from xtrax.feature.base import BaseTransformer
+from xtrax.transform.features import CategoryEncoder, NumberEncoder, IDEncoder
+
 
 _ENCODER_MAPPING = {
     "category": CategoryEncoder,
@@ -11,28 +13,24 @@ _ENCODER_MAPPING = {
 }
 
 
-class FeatureTransformer(ColumnTransformer):
-    def __init__(self, schema: dict, header: list[str] = None, remainder: str = "drop"):
-        self._schema = schema
-        self._header = header
-        transformers = self._get_transformers(self._schema, self._header)
-        super().__init__(transformers=transformers, remainder=remainder)
+class FeatureTransformer(BaseTransformer):
+    def encode(self, X):
+        def check_id_encoder(x):
+            return x[0] == IDEncoder.__name__
 
-    def fit(self, X, header: list[str] = None):
+        def get_idx():
+            return self._get_feature_indexes(self._schema, self._header)["id"][0]
+
+        transformer = list(filter(check_id_encoder, self.transformers))[0][1]
+        return transformer.transform(X[:, get_idx()])
+
+    def fit(self, X):
         self.transformers = (
             self._get_transformers(self._schema, self._header)
             if len(self.transformers) == 0
             else self.transformers
         )
         return super().fit(X)
-
-    def encode(self, X):
-        def check_id_encoder(x):
-            return x[0] == IDEncoder.__name__
-
-        return ColumnTransformer(
-            transformers=list(filter(check_id_encoder, self.transformers))[0][1]
-        ).transform(X)
 
     @classmethod
     def _get_transformers(cls, schema: dict[str, str], header: list[str] = None):
@@ -52,11 +50,3 @@ class FeatureTransformer(ColumnTransformer):
             mask = np.array(header) == feature
             feature_indexes[feature_type] += np.where(mask)[0].tolist()
         return feature_indexes
-
-    @property
-    def header(self):
-        return self._header
-
-    @property
-    def schema(self):
-        return self._schema
