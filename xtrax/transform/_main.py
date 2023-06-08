@@ -15,10 +15,10 @@ class FeatureTransformer(ColumnTransformer):
     def __init__(self, schema: dict, header: list[str] = None, remainder: str = "drop"):
         self._schema = schema
         self._header = header
-        transformers = self._get_transformers(self._schema, self._header) if header else []
+        transformers = self._get_transformers(self._schema, self._header)
         super().__init__(transformers=transformers, remainder=remainder)
 
-    def fit(self, X):
+    def fit(self, X, header: list[str] = None):
         self.transformers = (
             self._get_transformers(self._schema, self._header)
             if len(self.transformers) == 0
@@ -26,14 +26,24 @@ class FeatureTransformer(ColumnTransformer):
         )
         return super().fit(X)
 
+    def encode(self, X):
+        def check_id_encoder(x):
+            return x[0] == IDEncoder.__name__
+
+        return ColumnTransformer(
+            transformers=list(filter(check_id_encoder, self.transformers))[0][1]
+        ).transform(X)
+
     @classmethod
-    def _get_transformers(cls, schema: dict[str, str], header: list[str]):
-        feature_indexes = cls._get_feature_indexes(schema, header)
-        return [
-            tuple(_ENCODER_MAPPING[feature_type](idx))
-            for feature_type, idx in feature_indexes.items()
-            if len(idx) > 0
-        ]
+    def _get_transformers(cls, schema: dict[str, str], header: list[str] = None):
+        if header:
+            feature_indexes = cls._get_feature_indexes(schema, header)
+            return [
+                tuple(_ENCODER_MAPPING[feature_type](idx))
+                for feature_type, idx in feature_indexes.items()
+                if len(idx) > 0
+            ]
+        return []
 
     @staticmethod
     def _get_feature_indexes(schema: dict[str, str], header: list[str]):
@@ -46,7 +56,7 @@ class FeatureTransformer(ColumnTransformer):
     @property
     def header(self):
         return self._header
-    
+
     @property
     def schema(self):
         return self._schema
