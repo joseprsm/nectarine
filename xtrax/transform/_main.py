@@ -12,12 +12,11 @@ _ENCODER_MAPPING = {
 
 
 class FeatureTransformer(ColumnTransformer):
-    def __init__(self, schema: dict[str, dict], target: str, header: list[str] = None):
-        self._schema: dict[str, str] = schema[target]
-        self._target = target
+    def __init__(self, schema: dict, header: list[str] = None, remainder: str = "drop"):
+        self._schema = schema
         self._header = header
         transformers = self._get_transformers(self._schema, self._header) if header else []
-        super().__init__(transformers=transformers, remainder="drop")
+        super().__init__(transformers=transformers, remainder=remainder)
 
     def fit(self, X):
         self.transformers = (
@@ -51,7 +50,3 @@ class FeatureTransformer(ColumnTransformer):
     @property
     def schema(self):
         return self._schema
-
-    @property
-    def target(self):
-        return self._target
