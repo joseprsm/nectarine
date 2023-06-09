@@ -12,12 +12,12 @@ _ENCODER_MAPPING = {
 
 
 class FeatureTransformer(BaseTransformer):
-    def encode(self, X):
+    def encode(self, X, header: list[str]):
         def check_id_encoder(x):
             return x[0] == IDEncoder.__name__
 
         def get_idx():
-            return [self._get_feature_indexes(self._schema, self._header)["id"][0]]
+            return [self._get_feature_indexes(self._schema, header)["id"][0]]
 
         transformer = list(filter(check_id_encoder, self.transformers_))[0][1]
         return transformer.transform(X[:, get_idx()])
