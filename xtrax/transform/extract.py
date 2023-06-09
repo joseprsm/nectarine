@@ -1,7 +1,8 @@
 from xtrax.data import Dataset, Users, Items
-from xtrax.feature.base import BaseTransformer
-from xtrax.feature.transform import FeatureTransformer
-from xtrax.transform.context import ContextPipeline
+
+from .base import BaseTransformer
+from .context import ContextPipeline
+from .transform import FeatureTransformer
 
 
 class FeatureExtractor(BaseTransformer):
@@ -11,7 +12,6 @@ class FeatureExtractor(BaseTransformer):
 
         self._user_transformer = FeatureTransformer(schema["user"])
         self._item_transformer = FeatureTransformer(schema["item"])
-        self._context_pipeline = ContextPipeline(schema)
 
         transformers = self._get_transformers(schema, header)
         super().__init__(transformers=transformers, remainder="passthrough")
@@ -25,20 +25,20 @@ class FeatureExtractor(BaseTransformer):
         fit_transformer(Users)
         fit_transformer(Items)
 
-        self._user_transformer.encode(X)
-        self._item_transformer.encode(X)
+        X = self._user_transformer.encode(X)
+        X = self._item_transformer.encode(X)
 
         super().fit(X)
 
     def _get_transformers(self, schema: dict, header: list[str]):
-        context_header = self._get_context_header(schema, header)
+        context_indices = self._get_context_indices(schema, header)
         return [
             (
-                self._context_pipeline.__class__.__name__,
-                self._context_pipeline,
-                context_header,
+                ContextPipeline.__name__,
+                ContextPipeline(schema),
+                context_indices,
             )
         ]
 
-    def _get_context_header(cls, schema: dict, header: list[str]):
+    def _get_context_indices(cls, schema: dict, header: list[str]):
         raise NotImplementedError

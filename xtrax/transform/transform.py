@@ -1,9 +1,7 @@
 import numpy as np
 
-from sklearn.compose import ColumnTransformer
-
-from xtrax.feature.base import BaseTransformer
-from xtrax.transform.features import CategoryEncoder, NumberEncoder, IDEncoder
+from xtrax.transform.base import BaseTransformer
+from xtrax.encode.features import CategoryEncoder, NumberEncoder, IDEncoder
 
 
 _ENCODER_MAPPING = {
@@ -19,9 +17,9 @@ class FeatureTransformer(BaseTransformer):
             return x[0] == IDEncoder.__name__
 
         def get_idx():
-            return self._get_feature_indexes(self._schema, self._header)["id"][0]
+            return [self._get_feature_indexes(self._schema, self._header)["id"][0]]
 
-        transformer = list(filter(check_id_encoder, self.transformers))[0][1]
+        transformer = list(filter(check_id_encoder, self.transformers_))[0][1]
         return transformer.transform(X[:, get_idx()])
 
     def fit(self, X):
