@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nectarine
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/joseprsm/nectarine.git
+    targetRevision: HEAD
+    path: .k8s/base
+  destination:
+    name: in-cluster
+    namespace: nectarine
