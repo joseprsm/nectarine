@@ -40,3 +40,4 @@ jobs:
           context: .
           push: true
           target: ${{ inputs.target }}
+          tags: latest
