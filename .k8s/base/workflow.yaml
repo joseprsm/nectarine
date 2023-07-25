@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: nectarine-
+spec:
+  entrypoint: transform
+  templates:
+  - name: main
+    steps:
+    - - name: load
+        template: load
+        arguments:
+          parameters:
+          - name: output_path
+            value: ...  # todo: add output path
+    - - name: transform
+        dependencies: [load]
+        template: transform
+        arguments:
+          parameters:
+          - name: input_data
+            value: '{{ steps.load.outputs.parameters.data }}'
+    - - name: train
+        dependencies: [transform]
+        template: train
+        arguments:
+          parameters:
+          - name: transformed_data
+            value: '{{ steps.transform.outputs.parameters.transformed_data }}'
+
+  - name: load
+    inputs:
+      parameters:
+      - name: output_path
+    container:
+      image: ...  # todo: create image for load task
+    outputs:
+      parameters:
+      - name: data
+        valueFrom:
+          path: '{{ inputs.parameters.output_path }}'
+
+  - name: transform
+    container:
+      image: ghcr.io/joseprsm/nectarine
+      command: [ python, -m ]
+      args: [ nectatine.transform ]
+
+  - name: train
+    container:
+      image: ghcr.io/joseprsm/nectarine
+      command: [ python, -m ]
+      args: [ nectatine.train ]
