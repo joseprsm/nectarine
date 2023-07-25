@@ -1,0 +1,23 @@
+name: Docker Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*.*.*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: joseprsm/nectarine/.github/workflows/build.template.yml@main
+    strategy:
+      matrix:
+        target: [transform, train]
+    with:
+      target: ${{ matrix.target }}
+      registry: ghcr.io
+      image: ${{ github.repository }}
