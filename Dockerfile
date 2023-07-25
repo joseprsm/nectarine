@@ -1,6 +1,7 @@
 FROM python:3.10 AS base
 
 COPY nectarine nectarine
+COPY requirements requirements
 COPY pyproject.toml .
 
 FROM base AS transform
