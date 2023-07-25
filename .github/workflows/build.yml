@@ -17,6 +17,8 @@ jobs:
     strategy:
       matrix:
         target: [transform, train]
+    permissions:
+      packages: write
     with:
       target: ${{ matrix.target }}
       registry: ghcr.io
