@@ -1,2 +1,2 @@
 from .extract import Extractor
-from .transform import TransformLayer
+from .transform import FeatureTransformer
