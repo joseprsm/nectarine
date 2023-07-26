@@ -11,7 +11,7 @@ on:
 
 jobs:
   test:
-    uses: joseprsm/nectarine/.github/workflows/test.template.yml@main
+    uses: joseprsm/nectarine/.github/workflows/.test.template.yml@main
     strategy:
       matrix:
         target: [ transform, train ]
@@ -21,7 +21,7 @@ jobs:
       python_version: ${{ matrix.version }}
 
   build:
-    uses: joseprsm/nectarine/.github/workflows/build.template.yml@main
+    uses: joseprsm/nectarine/.github/workflows/.build.template.yml@main
     needs: test
     strategy:
       matrix:
