@@ -12,6 +12,13 @@ on:
 jobs:
   test:
     uses: joseprsm/nectarine/.github/workflows/test.template.yml@main
+    strategy:
+      matrix:
+        target: [ transform, train ]
+        version: [ "3.10" ]
+    with:
+      target: ${{ matrix.target }}
+      python_version: ${{ matrix.version }}
 
   build:
     uses: joseprsm/nectarine/.github/workflows/build.template.yml@main
