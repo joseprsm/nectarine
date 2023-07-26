@@ -2,8 +2,6 @@ name: Docker Build
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '*.*.*'
   pull_request:
@@ -12,8 +10,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    uses: joseprsm/nectarine/.github/workflows/test.template.yml@main
+
   build:
     uses: joseprsm/nectarine/.github/workflows/build.template.yml@main
+    needs: test
     strategy:
       matrix:
         target: [transform, train]
