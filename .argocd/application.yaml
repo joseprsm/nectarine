@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/joseprsm/nectarine.git
     targetRevision: HEAD
-    path: .k8s/base
+    path: helm/nectarine
   destination:
     name: in-cluster
     namespace: nectarine

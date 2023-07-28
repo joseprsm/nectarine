@@ -1,0 +1,8 @@
+apiVersion: v2
+name: nectarine
+description: "Nectarine - Streamlined Recommender Systems pipelines"
+version: "0.0.0"
+appVersion: "0.0.0"
+maintainers:
+  - name: José Medeiros
+    email: joseprsm@gmail.com

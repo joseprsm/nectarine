@@ -11,34 +11,34 @@ spec:
         template: load
         arguments:
           parameters:
-          - name: output_path
-            value: ...  # todo: add output path
+          - name: input_data
+            value: '{{ .Values.workflow.load.input_data }}'
     - - name: transform
         dependencies: [load]
         template: transform
         arguments:
           parameters:
           - name: input_data
-            value: '{{ steps.load.outputs.parameters.data }}'
+            value: '{{ `{{ steps.load.outputs.parameters.data }}` }}'
     - - name: train
         dependencies: [transform]
         template: train
         arguments:
           parameters:
           - name: transformed_data
-            value: '{{ steps.transform.outputs.parameters.transformed_data }}'
+            value: '{{ `{{ steps.transform.outputs.parameters.transformed_data }}` }}'
 
   - name: load
     inputs:
       parameters:
-      - name: output_path
+      - name: input_data
     container:
       image: ...  # todo: create image for load task
     outputs:
       parameters:
       - name: data
         valueFrom:
-          path: '{{ inputs.parameters.output_path }}'
+          path: outputs/
 
   - name: transform
     container:
