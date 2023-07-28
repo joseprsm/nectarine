@@ -1,4 +1,4 @@
-from ..min_max import MinMaxScaler
+from ..encode.min_max import MinMaxScaler
 from .base import BaseEncoder
 
 

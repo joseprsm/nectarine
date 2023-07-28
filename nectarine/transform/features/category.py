@@ -1,7 +1,7 @@
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OrdinalEncoder
 
-from ..one_hot import OneHotEncoder
+from ..encode.one_hot import OneHotEncoder
 from .base import BaseEncoder
 
 
