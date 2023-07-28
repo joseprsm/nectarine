@@ -1,9 +1,6 @@
 on:
   workflow_call:
     inputs:
-      target:
-        required: true
-        type: string
       registry:
         type: string
       image:
@@ -37,5 +34,4 @@ jobs:
         with:
           context: .
           push: true
-          target: ${{ inputs.target }}
-          tags: ${{ inputs.target }}
+          tags: latest
