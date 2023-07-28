@@ -1,7 +1,4 @@
-from xtrax.data import Dataset, Items, Users
-
 from .base import BaseTransformer
-from .context import ContextPipeline
 from .transform import FeatureTransformer
 
 
@@ -17,13 +14,13 @@ class Extractor(BaseTransformer):
         super().__init__(transformers=transformers, remainder="passthrough")
 
     def fit(self, X):
-        def fit_transformer(inputs: Dataset, transformer: FeatureTransformer):
+        def fit_transformer(inputs, transformer: FeatureTransformer):
             input_attr: str = getattr(self, f"_{inputs.__name__.lower()}")
             x = inputs.load(input_attr, schema=self._schema)
             transformer.fit(x)
 
-        fit_transformer(Users)
-        fit_transformer(Items)
+        fit_transformer(...)
+        fit_transformer(...)
 
         X = self._user_transformer.encode(X)
         X = self._item_transformer.encode(X)
@@ -31,14 +28,7 @@ class Extractor(BaseTransformer):
         super().fit(X)
 
     def _get_transformers(self, schema: dict, header: list[str]):
-        context_indices = self._get_context_indices(schema, header)
-        return [
-            (
-                ContextPipeline.__name__,
-                ContextPipeline(schema),
-                context_indices,
-            )
-        ]
+        raise NotImplementedError
 
     def _get_context_indices(cls, schema: dict, header: list[str]):
         raise NotImplementedError
