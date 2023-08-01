@@ -20,6 +20,7 @@ class FeatureTransformer(BaseTransformer):
         def get_idx():
             return [self._get_feature_indexes(self._schema, header)["id"][0]]
 
+        X = X.values if isinstance(X, pd.DataFrame) else X
         transformer = list(filter(check_id_encoder, self.transformers_))[0][1]
         return transformer.transform(X[:, get_idx()])
 
