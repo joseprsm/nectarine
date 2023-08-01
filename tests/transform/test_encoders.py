@@ -4,7 +4,7 @@ import pytest
 
 from nectarine.transform.encode.min_max import MinMaxScaler
 from nectarine.transform.encode.one_hot import OneHotEncoder
-from nectarine.transform.features import CategoryEncoder, IDEncoder
+from nectarine.transform.features import CategoryEncoder, IDEncoder, NumberEncoder
 
 
 _one_hot_data = [
@@ -39,7 +39,7 @@ _category_data = [(np.array([["a"], ["b"], ["a"]]), np.array([[1, 0], [0, 1], [1
 
 
 @pytest.mark.parametrize(["x", "y"], _category_data)
-def test_category(x, y):
+def test_category_encoder(x, y):
     y_hat = CategoryEncoder([None])._transformer.fit_transform(x)
     np.testing.assert_array_equal(y, y_hat)
 
@@ -48,6 +48,12 @@ _id_data = [(_category_data[0][0], np.array([[0], [1], [0]]))]
 
 
 @pytest.mark.parametrize(["x", "y"], _id_data)
-def test_id(x, y):
+def test_id_encoder(x, y):
     y_hat = IDEncoder([None])._transformer.fit_transform(x)
+    np.testing.assert_array_equal(y, y_hat)
+
+
+@pytest.mark.parametrize(["x", "y"], _min_max_data)
+def test_number_encoder(x, y):
+    y_hat = NumberEncoder([None])._transformer.fit_transform(x)
     np.testing.assert_array_equal(y, y_hat)
