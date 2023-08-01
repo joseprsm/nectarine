@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from .base import BaseTransformer
 from .features import CategoryEncoder, IDEncoder, NumberEncoder
@@ -23,15 +24,17 @@ class FeatureTransformer(BaseTransformer):
         return transformer.transform(X[:, get_idx()])
 
     def fit(self, X):
+        x = X.values if isinstance(X, pd.DataFrame) else X
         self.transformers = (
             self._get_transformers(self._schema, self._header)
             if len(self.transformers) == 0
             else self.transformers
         )
-        return super().fit(X)
+        return super().fit(x)
 
     def transform(self, X):
-        x = super().transform(X)
+        x = X.values if isinstance(X, pd.DataFrame) else X
+        x = super().transform(x)
         return x[:, [0]], x[:, 1:]
 
     @classmethod
