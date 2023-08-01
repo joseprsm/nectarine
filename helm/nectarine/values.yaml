@@ -1,3 +1,5 @@
 workflow:
   load:
     input_data: ""
+  train:
+    model_location: ""

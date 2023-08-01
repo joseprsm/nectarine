@@ -51,3 +51,7 @@ spec:
       image: ghcr.io/joseprsm/nectarine
       command: [ python, -m ]
       args: [ nectatine.train ]
+    outputs:
+      parameters:
+      - name: model-location
+        value: '{{ .Values.workflow.train.model_location }}'
