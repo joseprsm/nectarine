@@ -2,8 +2,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from nectarine.transform.encode.min_max import MinMaxScaler
-from nectarine.transform.encode.one_hot import OneHotEncoder
+from nectarine.transform.encode import MinMaxScaler, OneHotEncoder
 from nectarine.transform.features import CategoryEncoder, IDEncoder, NumberEncoder
 
 
