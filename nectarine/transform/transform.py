@@ -1,7 +1,7 @@
 import numpy as np
 
 from .base import BaseTransformer
-from .encode.features import CategoryEncoder, IDEncoder, NumberEncoder
+from .features import CategoryEncoder, IDEncoder, NumberEncoder
 
 
 _ENCODER_MAPPING = {
