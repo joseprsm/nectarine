@@ -1,5 +1,6 @@
 from abc import abstractmethod
 
+import numpy as np
 from sklearn.compose import ColumnTransformer
 
 
@@ -8,6 +9,7 @@ class BaseTransformer(ColumnTransformer):
         self._schema = schema
         self._header = header
         transformers = self._get_transformers(self._schema, self._header)
+        transformers = self._first_transformer_id(transformers)
         super().__init__(transformers=transformers, remainder=remainder)
 
     @abstractmethod
@@ -21,3 +23,10 @@ class BaseTransformer(ColumnTransformer):
     @property
     def schema(self):
         return self._schema
+
+    @staticmethod
+    def _first_transformer_id(transformers: list):
+        id_encoder = transformers.pop(
+            np.where([x[0] == "IDEncoder" for x in transformers])[0][0]
+        )
+        return [id_encoder] + transformers

@@ -30,6 +30,10 @@ class FeatureTransformer(BaseTransformer):
         )
         return super().fit(X)
 
+    def transform(self, X):
+        x = super().transform(X)
+        return x[:, [0]], x[:, 1:]
+
     @classmethod
     def _get_transformers(cls, schema: dict[str, str], header: list[str] = None):
         if header:
