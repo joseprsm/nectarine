@@ -5,7 +5,7 @@ from sklearn.compose import ColumnTransformer
 
 
 class BaseTransformer(ColumnTransformer):
-    def __init__(self, schema: dict, header: list[str], remainder: str = "drop"):
+    def __init__(self, schema: dict, header: list[str] = None, remainder: str = "drop"):
         self._schema = schema
         self._header = header
         transformers = self._get_transformers(self._schema, self._header)
