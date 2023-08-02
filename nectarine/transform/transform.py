@@ -25,18 +25,18 @@ class FeatureTransformer(BaseTransformer):
         return transformer.transform(X[:, get_idx()])
 
     def fit(self, X):
-        x = X.values if isinstance(X, pd.DataFrame) else X
-        self.transformers = (
-            self._get_transformers(self._schema, self._header)
-            if len(self.transformers) == 0
-            else self.transformers
-        )
-        return super().fit(x)
+        if isinstance(X, pd.DataFrame):
+            header = self._header
+            if len(self.transformers) == 0:
+                header = X.columns.to_list()
+            X = X.values
+            self.transformers = self._get_transformers(self._schema, header)
+        return super().fit(X)
 
     def transform(self, X):
-        x = X.values if isinstance(X, pd.DataFrame) else X
-        x = super().transform(x)
-        return x[:, [0]], x[:, 1:]
+        X = X.values if isinstance(X, pd.DataFrame) else X
+        X = super().transform(X)
+        return X[:, [0]], X[:, 1:]
 
     @classmethod
     def _get_transformers(cls, schema: dict[str, str], header: list[str] = None):
