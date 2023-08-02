@@ -1,34 +1,30 @@
-from .base import BaseTransformer
+import pandas as pd
+
 from .transform import FeatureTransformer
 
 
-class Extractor(BaseTransformer):
-    def __init__(self, schema: dict, users: str, items: str, header: list[str]):
+class Extractor:
+    def __init__(self, schema: dict, users: str, items: str):
+        self._schema = schema
         self._users = users
         self._items = items
 
-        self._user_transformer = FeatureTransformer(schema["user"])
-        self._item_transformer = FeatureTransformer(schema["item"])
-
-        transformers = self._get_transformers(schema, header)
-        super().__init__(transformers=transformers, remainder="passthrough")
+        self._user_transformer = FeatureTransformer(self._schema["user"])
+        self._item_transformer = FeatureTransformer(self._schema["item"])
 
     def fit(self, X):
-        def fit_transformer(inputs, transformer: FeatureTransformer):
-            input_attr: str = getattr(self, f"_{inputs.__name__.lower()}")
-            x = inputs.load(input_attr, schema=self._schema)
-            transformer.fit(x)
+        def fit_transformer(target: str):
+            input_path = getattr(self, f"_{target}")
+            transformer = getattr(self, f"_{target[:-1]}_transformer")
+            x = pd.read_csv(input_path)
+            _ = transformer.fit(x)
 
-        fit_transformer(...)
-        fit_transformer(...)
+        fit_transformer("users")
+        fit_transformer("items")
 
-        X = self._user_transformer.encode(X)
-        X = self._item_transformer.encode(X)
+        return self
 
-        super().fit(X)
-
-    def _get_transformers(self, schema: dict, header: list[str]):
-        raise NotImplementedError
-
-    def _get_context_indices(cls, schema: dict, header: list[str]):
-        raise NotImplementedError
+    def transform(self, X):
+        x = self._user_transformer.encode(X)
+        x = self._item_transformer.encode(x)
+        return x
