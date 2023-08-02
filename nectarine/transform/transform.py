@@ -13,7 +13,7 @@ _ENCODER_MAPPING = {
 
 
 class FeatureTransformer(BaseTransformer):
-    def encode(self, X: pd.DataFrame):
+    def encode(self, X: pd.DataFrame, return_dataframe: bool = True):
         def check_id_encoder(x):
             return x[0] == IDEncoder.__name__
 
@@ -21,8 +21,15 @@ class FeatureTransformer(BaseTransformer):
             header = X.columns.to_list()
             return [self._get_feature_indexes(self._schema, header)["id"][0]]
 
+        idx = get_idx()
         transformer = list(filter(check_id_encoder, self.transformers_))[0][1]
-        return transformer.transform(X.iloc[:, get_idx()].values)
+        encoded = transformer.transform(X.iloc[:, idx].values)
+
+        if return_dataframe:
+            X_ = X.copy(deep=True)
+            X_.iloc[:, idx] = encoded
+            return X_
+        return encoded
 
     def fit(self, X):
         if isinstance(X, pd.DataFrame):
