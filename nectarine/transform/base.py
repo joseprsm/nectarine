@@ -9,7 +9,6 @@ class BaseTransformer(ColumnTransformer):
         self._schema = schema
         self._header = header
         transformers = self._get_transformers(self._schema, self._header)
-        transformers = self._first_transformer_id(transformers)
         super().__init__(transformers=transformers, remainder=remainder)
 
     @abstractmethod

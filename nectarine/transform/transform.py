@@ -31,6 +31,7 @@ class FeatureTransformer(BaseTransformer):
                 header = X.columns.to_list()
             X = X.values
             self.transformers = self._get_transformers(self._schema, header)
+        self.transformers = self._first_transformer_id(self.transformers)
         return super().fit(X)
 
     def transform(self, X):
