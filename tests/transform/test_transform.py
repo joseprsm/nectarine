@@ -35,6 +35,8 @@ def test_transform(header):
 
 @pytest.mark.parametrize(["header"], [(["user_id", "age", "gender"],), (None,)])
 def test_encode(header):
-    feat = FeatureTransformer(schema, header)
-    encoded = feat.fit(data).encode(data)
-    assert encoded.dtype == float
+    feat = FeatureTransformer(schema, header).fit(data)
+    encoded_col = feat.encode(data, return_dataframe=False)
+    assert encoded_col.dtype == int
+    encoded_df = feat.encode(data)
+    assert encoded_df.shape == data.shape

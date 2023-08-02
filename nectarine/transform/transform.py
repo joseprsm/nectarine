@@ -23,7 +23,7 @@ class FeatureTransformer(BaseTransformer):
 
         idx = get_idx()
         transformer = list(filter(check_id_encoder, self.transformers_))[0][1]
-        encoded = transformer.transform(X.iloc[:, idx].values)
+        encoded = transformer.transform(X.iloc[:, idx].values).astype(int)
 
         if return_dataframe:
             X_ = X.copy(deep=True)
