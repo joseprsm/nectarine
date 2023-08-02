@@ -33,7 +33,8 @@ def test_transform(header):
     assert feats.shape == (data.shape[0], 3)
 
 
-def test_encode():
-    feat = FeatureTransformer(schema, header=["user_id", "age", "gender"])
-    encoded = feat.fit(data).encode(data, ["user_id", "age", "gender"])
+@pytest.mark.parametrize(["header"], [(["user_id", "age", "gender"],), (None,)])
+def test_encode(header):
+    feat = FeatureTransformer(schema, header)
+    encoded = feat.fit(data).encode(data)
     assert encoded.dtype == float
