@@ -39,16 +39,7 @@ def create_data(dirname):
     return interactions, users_path, items_path
 
 
-def test_fit():
+def test_call():
     with tempfile.TemporaryDirectory() as tmpdirname:
         interactions, users_path, items_path = create_data(tmpdirname)
-        extractor = Extractor(schema, users_path, items_path)
-        extractor.fit(interactions)
-
-
-def test_transform():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        interactions, users_path, items_path = create_data(tmpdirname)
-        extractor = Extractor(schema, users_path, items_path)
-        y_hat = extractor.fit(interactions).transform(interactions)
-    assert interactions.shape[0] == y_hat.shape[0]
+        Extractor(schema, users_path, items_path)(interactions)

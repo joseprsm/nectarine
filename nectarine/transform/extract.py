@@ -1,30 +1,43 @@
+import jax.numpy as jnp
 import pandas as pd
+from flax import linen as nn
 
 from .transform import FeatureTransformer
+
+
+class _LookupModule(nn.Module):
+    data: jnp.ndarray
+
+    @nn.compact
+    def __call__(self, inputs: int | jnp.ndarray):
+        return jnp.take(self.data, inputs, axis=0)
 
 
 class Extractor:
     def __init__(self, schema: dict, users: str, items: str):
         self._schema = schema
-        self._users = users
-        self._items = items
+        self._user_path = users
+        self._item_path = items
 
-        self._user_transformer = FeatureTransformer(self._schema["user"])
-        self._item_transformer = FeatureTransformer(self._schema["item"])
+    def __call__(self, X: pd.DataFrame) -> nn.Module:
+        user_transformer, user_lookup = self._get_fitted_transformer("user")
+        item_transformer, item_lookup = self._get_fitted_transformer("item")
 
-    def fit(self, X):
-        def fit_transformer(target: str):
-            input_path = getattr(self, f"_{target}")
-            transformer = getattr(self, f"_{target[:-1]}_transformer")
-            x = pd.read_csv(input_path)
-            _ = transformer.fit(x)
+        def encode(x_):
+            x_ = user_transformer.encode(x_)
+            x_ = item_transformer.encode(x_)
+            return x_
 
-        fit_transformer("users")
-        fit_transformer("items")
+        x = X.copy(deep=True)
+        x = encode(x)
 
-        return self
+        return x, user_lookup, item_lookup
 
-    def transform(self, X):
-        x = self._user_transformer.encode(X)
-        x = self._item_transformer.encode(x)
-        return x
+    def _get_fitted_transformer(self, target: str):
+        input_path = getattr(self, f"_{target}_path")
+        transformer = FeatureTransformer(self._schema[target])
+        inputs = pd.read_csv(input_path)
+        ids, features = transformer.fit(inputs).transform(inputs)
+        outputs = pd.DataFrame(features, ids.reshape(-1).astype(int))
+        lookup = _LookupModule(outputs.sort_index().values)
+        return transformer, lookup
