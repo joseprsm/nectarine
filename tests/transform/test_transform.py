@@ -2,6 +2,7 @@ import string
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from nectarine.transform import FeatureTransformer
 
@@ -17,13 +18,15 @@ data = pd.DataFrame(
 schema = {"user_id": "id", "age": "number", "gender": "category"}
 
 
-def test_fit():
-    feat = FeatureTransformer(schema, header=["user_id", "age", "gender"])
+@pytest.mark.parametrize(["header"], [(["user_id", "age", "gender"],), (None,)])
+def test_fit(header):
+    feat = FeatureTransformer(schema, header=header)
     feat.fit(data)
 
 
-def test_transform():
-    feat = FeatureTransformer(schema, header=["user_id", "age", "gender"])
+@pytest.mark.parametrize(["header"], [(["user_id", "age", "gender"],), (None,)])
+def test_transform(header):
+    feat = FeatureTransformer(schema, header=header)
     transformed_data = feat.fit(data).transform(data)
     ids, feats = transformed_data
     assert ids.shape == (data.shape[0], 1)
