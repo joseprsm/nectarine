@@ -78,6 +78,8 @@ spec:
       - --items {{ `{{ inputs.parameters.items }}` }}
       - --schema {{ `{{ inputs.parameters.schema }}` }}
       - --interactions {{ `{{ inputs.parameters.interactions }}` }}
+      - --transform-layer {{ `{{ outputs.parameters.transform_layer }}` }}
+      - --model-config {{ `{{ outputs.parameters.model_config }}` }}
     outputs:
       parameters:
         - name: transform_layer
@@ -99,6 +101,7 @@ spec:
       - --schema-path {{ `{{ inputs.parameters.schema }}` }}
       - --transform-layer {{ `{{ inputs.parameters.transform_layer }}` }}
       - --model-config {{ `{{ inputs.parameters.model_config }}` }}
+      - --model-path {{ `{{ outputs.parameters.model }}` }}
     outputs:
       parameters:
       - name: model
