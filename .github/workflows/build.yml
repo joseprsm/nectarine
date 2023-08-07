@@ -34,7 +34,7 @@ jobs:
       packages: write
     env:
       REGISTRY: ghcr.io
-      IMAGE: ${{ github.repository }}
+      IMAGE_URI: ghcr.io/${{ github.repository }}
     needs: test
     steps:
       - name: Checkout Repository
@@ -49,10 +49,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v2
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE }}
+          images: ${{ env.IMAGE_URI }}
       - name: Build and push Docker Image
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
+          tags: ${{ env.IMAGE_URI }}:latest
