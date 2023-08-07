@@ -7,10 +7,10 @@ from nectarine import Extractor
 
 
 @click.command()
-@click.option("--users-path", "users", required=True)
-@click.option("--items-path", "items", required=True)
-@click.option("--schema-path", "schema", required=True)
-@click.option("--interactions-path", "interactions", required=True)
+@click.option("--users-path", "--users", "users", required=True)
+@click.option("--items-path", "--items", "items", required=True)
+@click.option("--schema-path", "--schema", "schema", required=True)
+@click.option("--interactions-path", "--interactions", "interactions", required=True)
 def transform(interactions, users, items, schema):
     with open(schema, "r") as f:
         schema = json.load(f)
