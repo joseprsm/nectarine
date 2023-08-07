@@ -15,9 +15,6 @@ dev = ["flake8", "black", "isort", "pytest", "pre-commit"]
 version = { attr = "nectarine.__version__" }
 dependencies = { file = ["requirements.txt"] }
 
-[tool.setuptools.packages.find]
-include = ["nectarine"]
-
 [tool.isort]
 profile = "black"
 lines_after_imports = 2
