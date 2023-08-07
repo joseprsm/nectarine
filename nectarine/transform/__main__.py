@@ -1,4 +1,5 @@
 import json
+import pickle
 
 import click
 import pandas as pd
@@ -14,18 +15,25 @@ from nectarine import Extractor
 @click.option("--transform-layer", "interactions")
 @click.option("--model-config", "interactions")
 def transform(
-    interactions,
-    users,
-    items,
-    schema,
+    interactions: str,
+    users: str,
+    items: str,
+    schema: str,
     transform_layer: str = None,
     model_config: str = None,
 ):
+    x = pd.read_csv(interactions)
+
     with open(schema, "r") as f:
         schema = json.load(f)
-    interactions = pd.read_csv(interactions)
-    extractor = Extractor(schema, users, items)
-    features = extractor.fit(interactions).transform(interactions)  # noqa: F841
+
+    x, lookup_layer, model_config = Extractor(schema, users, items)(x)
+
+    with open(transform_layer, "wb") as lookup_fp:
+        pickle.dump(lookup_layer, lookup_fp)
+
+    with open(model_config, "w") as config_fp:
+        json.dump(model_config, config_fp)
 
 
 if __name__ == "__main__":
