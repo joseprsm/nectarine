@@ -1,7 +1,6 @@
 FROM python:3.10
 
-COPY src src
-
+COPY nectarine nectarine
 COPY requirements.txt .
 COPY pyproject.toml .
 

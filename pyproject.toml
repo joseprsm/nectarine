@@ -11,6 +11,10 @@ dynamic = ["version", "dependencies"]
 [project.optional-dependencies]
 dev = ["flake8", "black", "isort", "pytest", "pre-commit"]
 
+[tool.setuptools.packages.find]
+include = ["nectarine*"]
+namespaces = false
+
 [tool.setuptools.dynamic]
 version = { attr = "nectarine.__version__" }
 dependencies = { file = ["requirements.txt"] }
