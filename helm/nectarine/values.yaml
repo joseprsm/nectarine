@@ -1,5 +1,12 @@
 workflow:
-  load:
-    input_data: ""
-  train:
-    model_location: ""
+  outputs:
+    load:
+      schema: /outputs/schema.json
+      users: /outputs/users.csv
+      items: /outputs/items.csv
+      interactions: /outputs/interactions.csv
+    transform:
+      transform_layer: /outputs/transform_layer.pickle
+      model_config: /outputs/model_config.json
+    train:
+      model: /outputs/model

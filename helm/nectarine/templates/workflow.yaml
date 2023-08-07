@@ -11,47 +11,95 @@ spec:
         template: load
         arguments:
           parameters:
-          - name: input_data
-            value: '{{ .Values.workflow.load.input_data }}'
+          - name: schema_uri
+          - name: users_uri
+          - name: items_uri
+          - name: interactions_uri
     - - name: transform
         dependencies: [load]
         template: transform
         arguments:
           parameters:
-          - name: input_data
-            value: '{{ `{{ steps.load.outputs.parameters.data }}` }}'
+          - name:  schema
+            value: '{{ `{{ steps.load.outputs.parameters.schema }}` }}'
+          - name: users
+            value: '{{ `{{ steps.load.outputs.parameters.users }}` }}'
+          - name: items
+            value: '{{ `{{ steps.load.outputs.parameters.items }}` }}'
+          - name: interactions
+            value: '{{ `{{ steps.load.outputs.parameters.interactions }}` }}'
     - - name: train
         dependencies: [transform]
         template: train
         arguments:
           parameters:
-          - name: transformed_data
-            value: '{{ `{{ steps.transform.outputs.parameters.transformed_data }}` }}'
+          - name: model_config
+            value: '{{ `{{ steps.transform.outputs.parameters.model_config }}` }}'
+          - name: schema
+            value: '{{ `{{ steps.load.outputs.parameters.schema }}` }}'
+          - name: transform_layer
+            value: '{{ `{{ steps.transform.outputs.parameters.transform_layer }}` }}'
 
   - name: load
     inputs:
       parameters:
-      - name: input_data
+      - name: schema_uri
+      - name: users_uri
+      - name: items_uri
+      - name: interactions_uri
     container:
-      image: ...  # todo: create image for load task
+      image: amazon/aws-cli
+      command: []
     outputs:
       parameters:
-      - name: data
-        valueFrom:
-          path: outputs/
+      - name: schema
+        value: '{{ .Values.workflow.outputs.load.schema }}'
+      - name: users
+        value: '{{ .Values.workflow.outputs.load.users }}'
+      - name: items
+        value: '{{ .Values.workflow.outputs.load.items }}'
+      - name: interactions
+        value: '{{ .Values.workflow.outputs.load.interactions }}'
 
   - name: transform
+    inputs:
+      parameters:
+      - name: schema
+      - name: users
+      - name: items
+      - name: interactions
     container:
       image: ghcr.io/joseprsm/nectarine
-      command: [ python, -m ]
-      args: [ nectatine.transform ]
-
-  - name: train
-    container:
-      image: ghcr.io/joseprsm/nectarine
-      command: [ python, -m ]
-      args: [ nectatine.train ]
+      command:
+      - python -m
+      - nectarine.transform
+      args:
+      - --users {{ `{{ inputs.parameters.users }}` }}
+      - --items {{ `{{ inputs.parameters.items }}` }}
+      - --schema {{ `{{ inputs.parameters.schema }}` }}
+      - --interactions {{ `{{ inputs.parameters.interactions }}` }}
     outputs:
       parameters:
-      - name: model-location
-        value: '{{ .Values.workflow.train.model_location }}'
+        - name: transform_layer
+          value: '{{ .Values.workflow.outputs.transform.transform_layer }}'
+        - name: model_config
+          value: '{{ .Values.workflow.outputs.transform.model_config }}'
+
+  - name: train
+    inputs:
+      parameters:
+      - name: schema
+      - name: transform_layer
+    container:
+      image: ghcr.io/joseprsm/nectarine
+      command:
+      - python -m
+      - nectarine.train
+      args:
+      - --schema-path {{ `{{ inputs.parameters.schema }}` }}
+      - --transform-layer {{ `{{ inputs.parameters.transform_layer }}` }}
+      - --model-config {{ `{{ inputs.parameters.model_config }}` }}
+    outputs:
+      parameters:
+      - name: model
+        value: '{{ .Values.workflow.outputs.train.model }}'
