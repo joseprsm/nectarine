@@ -1,5 +1,7 @@
-from datetime import datetime
+import json
+import pickle
 
+import click
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -16,21 +18,10 @@ LEARNING_RATE = 0.01
 EMBEDDING_DIM = 8
 TEST_SIZE = 0.3
 
-df = pd.read_csv("data/ml-latest-small/ratings.csv")
-df = df.sample(frac=1, random_state=1)
-cutoff = np.floor(df.shape[0] * TEST_SIZE).astype(int)
-test_df, train_df = df.iloc[:cutoff], df.iloc[cutoff:]
-
-n_movies = df.movieId.max()
-n_users = df.userId.max()
-
-rng = jax.random.PRNGKey(0)
-model = Recommender(
-    users_size=n_users + 1, items_size=n_movies + 1, embedding_dim=EMBEDDING_DIM
-)
+RNG = jax.random.PRNGKey(0)
 
 
-def create_train_state(rng):
+def create_train_state(model, rng):
     user_id = jnp.zeros((5, 1), jnp.int32)
     item_id = jnp.zeros((5, 1), jnp.int32)
     params = model.init(rng, user_id, item_id)["params"]
@@ -41,7 +32,7 @@ def create_train_state(rng):
 
 
 @jax.jit
-def apply_model(state, user_id, item_id):
+def apply_model(model, state, user_id, item_id):
     def categorical_crossentropy(y_true, y_pred):
         log_probs = jax.nn.log_softmax(y_pred, axis=-1)
         loss = -jnp.sum(y_true * log_probs)
@@ -72,19 +63,17 @@ def update_model(state, grads):
     return state.apply_gradients(grads=grads)
 
 
-def train_epoch(state):
-    steps_per_epoch = train_df.shape[0] // BATCH_SIZE
-    batches = jax.random.permutation(rng, train_df.shape[0])
+def train_epoch(model, state, train_data: pd.DataFrame, rng):
+    steps_per_epoch = train_data.shape[0] // BATCH_SIZE
+    batches = jax.random.permutation(rng, train_data.shape[0])
     batches = batches[: steps_per_epoch * BATCH_SIZE]
     batches = batches.reshape((steps_per_epoch, BATCH_SIZE))
 
     epoch_loss = []
 
     for batch in batches:
-        user_id, item_id = jnp.split(
-            train_df.iloc[batch][["userId", "movieId"]].values, 2, axis=1
-        )
-        grads, loss = apply_model(state, user_id, item_id)
+        user_id, item_id = jnp.split(train_data.iloc[batch][[0, 1]].values, 2, axis=1)
+        grads, loss = apply_model(model, state, user_id, item_id)
         state = update_model(state, grads)
         epoch_loss.append(loss)
 
@@ -92,9 +81,9 @@ def train_epoch(state):
     return state, train_loss
 
 
-def test_epoch(state):
-    steps_per_epoch = test_df.shape[0] // BATCH_SIZE
-    batches = jax.random.permutation(rng, test_df.shape[0])
+def test_epoch(model, state, validation_data: pd.DataFrame, rng):
+    steps_per_epoch = validation_data.shape[0] // BATCH_SIZE
+    batches = jax.random.permutation(rng, validation_data.shape[0])
     batches = batches[: steps_per_epoch * BATCH_SIZE]
     batches = batches.reshape((steps_per_epoch, BATCH_SIZE))
 
@@ -102,28 +91,58 @@ def test_epoch(state):
 
     for batch in batches:
         user_id, item_id = jnp.split(
-            test_df.iloc[batch][["userId", "movieId"]].values, 2, axis=1
+            validation_data.iloc[batch][[0, 1]].values, 2, axis=1
         )
-        _, loss = apply_model(state, user_id, item_id)
+        _, loss = apply_model(model, state, user_id, item_id)
         epoch_loss.append(loss)
 
     test_loss = np.mean(epoch_loss)
     return test_loss
 
 
-def train_and_evaluate(state):
+def train_and_evaluate(model, state, train_data, validation_data, rng):
     for epoch in range(1, NUM_EPOCHS + 1):
-        state, train_loss = train_epoch(state)
-        test_loss = test_epoch(state)
+        state, train_loss = train_epoch(model, state, train_data, rng)
+        test_loss = test_epoch(model, state, validation_data, rng)
         print(f"epoch: {epoch}, train_loss: {train_loss}, test_loss: {test_loss}")
     return state
 
 
-rng, init_rng = jax.random.split(rng)
-state = create_train_state(init_rng)
+@click.command()
+@click.option("--encoded-path", "--encoded", "encoded", required=True)
+@click.option("--schema-path", "--schema", "schema", required=True)
+@click.option("--transform-layer", "--transform", "transform_layer", required=True)
+@click.option("--model-config", "--config", "model_config")
+@click.option("--model-path", "model")
+def train(
+    encoded: str,
+    schema: str,
+    transform_layer: str,
+    model_config: str = None,
+    model_path: str = None,
+):
+    with open(transform_layer, "rb") as fp:
+        transform_layer = pickle.load(fp)
 
-start = datetime.now()
-state = train_and_evaluate(state)
-end = datetime.now()
+    with open(schema, "r") as fp:
+        schema = json.load(fp)
 
-print(end - start)
+    with open(model_config, "r") as fp:
+        model_config = json.load(fp)
+
+    df = pd.read_csv(encoded).sample(frac=1, random_state=1)
+    cutoff = np.floor(df.shape[0] * TEST_SIZE).astype(int)
+    validation_data, train_data = df.iloc[:cutoff], df.iloc[cutoff:]
+
+    model = Recommender(schema, config=model_config, transform=transform_layer)
+
+    rng, init_rng = jax.random.split(RNG)
+    state = create_train_state(init_rng)
+    state = train_and_evaluate(model, state, train_data, validation_data, rng)
+
+    with open(model_path, "wb") as fp:
+        pickle.dump(model, fp)
+
+
+if __name__ == "__main__":
+    train()
