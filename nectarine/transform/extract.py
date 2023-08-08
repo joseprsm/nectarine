@@ -1,5 +1,4 @@
 import pandas as pd
-from flax import linen as nn
 
 from .output import TransformOutput
 from .transform import FeatureTransformer
@@ -11,7 +10,7 @@ class Extractor:
         self._user_path = users
         self._item_path = items
 
-    def __call__(self, X: pd.DataFrame) -> nn.Module:
+    def __call__(self, X: pd.DataFrame) -> tuple[pd.DataFrame, TransformOutput, dict]:
         def fit_transformer(target: str):
             input_path = getattr(self, f"_{target}_path")
             transformer = FeatureTransformer(self._schema[target])
