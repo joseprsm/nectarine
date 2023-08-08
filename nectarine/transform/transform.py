@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
+from sklearn.compose import ColumnTransformer
 
-from .base import BaseTransformer
 from .features import CategoryEncoder, IDEncoder, NumberEncoder
 
 
@@ -12,7 +12,13 @@ _ENCODER_MAPPING = {
 }
 
 
-class FeatureTransformer(BaseTransformer):
+class FeatureTransformer(ColumnTransformer):
+    def __init__(self, schema: dict, header: list[str] = None, remainder: str = "drop"):
+        self._schema = schema
+        self._header = header
+        transformers = self._get_transformers(self._schema, self._header)
+        super().__init__(transformers=transformers, remainder=remainder)
+
     def encode(self, X: pd.DataFrame, return_dataframe: bool = True):
         def check_id_encoder(x):
             return x[0] == IDEncoder.__name__
@@ -63,3 +69,18 @@ class FeatureTransformer(BaseTransformer):
             mask = np.array(header) == feature
             feature_indexes[feature_type] += np.where(mask)[0].tolist()
         return feature_indexes
+
+    @property
+    def header(self):
+        return self._header
+
+    @property
+    def schema(self):
+        return self._schema
+
+    @staticmethod
+    def _first_transformer_id(transformers: list):
+        id_encoder = transformers.pop(
+            np.where([x[0] == "IDEncoder" for x in transformers])[0][0]
+        )
+        return [id_encoder] + transformers
