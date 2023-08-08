@@ -134,10 +134,10 @@ def train(
     cutoff = np.floor(df.shape[0] * TEST_SIZE).astype(int)
     validation_data, train_data = df.iloc[:cutoff], df.iloc[cutoff:]
 
-    model = Recommender(schema, config=model_config, transform=transform_layer)
+    model = Recommender(config=model_config, transform=transform_layer)
 
     rng, init_rng = jax.random.split(RNG)
-    state = create_train_state(init_rng)
+    state = create_train_state(model, init_rng)
     state = train_and_evaluate(model, state, train_data, validation_data, rng)
 
     with open(model_path, "wb") as fp:
