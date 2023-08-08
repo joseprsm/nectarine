@@ -1,6 +1,5 @@
-from typing import Any
-
 from flax import linen as nn
+from jax import numpy as jnp
 
 
 class Tower(nn.Module):
@@ -10,12 +9,17 @@ class Tower(nn.Module):
     name: str = None
 
     @nn.compact
-    def __call__(self, id_, *_) -> Any:
+    def __call__(self, features):
+        id_, features = features[:, [0]].astype(int), features[:, 1:]
+
         x = nn.Embed(
             num_embeddings=self.n_dims,
             embedding_init=nn.initializers.xavier_uniform(),
             features=self.embedding_dim,
         )(id_)
+
+        x = x.reshape(-1, self.embedding_dim)
+        x = jnp.concatenate([x, features], axis=1)
 
         layers = self.layer_sizes or [64, 32]
         for layer in layers[:-1]:
