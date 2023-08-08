@@ -32,6 +32,9 @@ class Extractor:
         x = X.copy(deep=True)
         x = encode(x)
 
-        model_config = {}
+        model_config = {
+            "query": {"n_dims": users.shape[0]},
+            "candidate": {"n_dims": items.shape[0]},
+        }
 
         return x, transform_output, model_config
