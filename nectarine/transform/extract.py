@@ -1,17 +1,8 @@
-import jax.numpy as jnp
 import pandas as pd
 from flax import linen as nn
 
 from .output import TransformOutput
 from .transform import FeatureTransformer
-
-
-class _LookupModule(nn.Module):
-    data: jnp.ndarray
-
-    @nn.compact
-    def __call__(self, inputs: int | jnp.ndarray):
-        return jnp.take(self.data, inputs, axis=0)
 
 
 class Extractor:
@@ -27,13 +18,11 @@ class Extractor:
             inputs = pd.read_csv(input_path)
             ids, features = transformer.fit(inputs).transform(inputs)
             outputs = pd.DataFrame(features, ids.reshape(-1).astype(int))
-            lookup = _LookupModule(outputs.sort_index().values)
-            return transformer, lookup
+            return transformer, outputs
 
-        user_transformer, user_lookup = fit_transformer("user")
-        item_transformer, item_lookup = fit_transformer("item")
-
-        transform_layer = TransformOutput(user_lookup, item_lookup)
+        user_transformer, users = fit_transformer("user")
+        item_transformer, items = fit_transformer("item")
+        transform_output = TransformOutput(users, items)
 
         def encode(x_):
             x_ = user_transformer.encode(x_)
@@ -45,4 +34,4 @@ class Extractor:
 
         model_config = {}
 
-        return x, transform_layer, model_config
+        return x, transform_output, model_config
