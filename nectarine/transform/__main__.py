@@ -29,13 +29,13 @@ def transform(
     with open(schema, "r") as f:
         schema = json.load(f)
 
-    x, lookup_layer, model_config = Extractor(schema, users, items)(x)
+    x, lookup_layer, config = Extractor(schema, users, items)(x)
 
     with open(transform_layer, "wb") as lookup_fp:
         pickle.dump(lookup_layer, lookup_fp)
 
     with open(model_config, "w") as config_fp:
-        json.dump(model_config, config_fp)
+        json.dump(config, config_fp)
 
     x.to_csv(encoded, index=None)
 
