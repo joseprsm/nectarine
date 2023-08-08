@@ -33,6 +33,8 @@ spec:
         template: train
         arguments:
           parameters:
+          - name: interactions
+            value: '{{ `{{ steps.transform.outputs.parameters.model_config }}` }}'
           - name: model_config
             value: '{{ `{{ steps.transform.outputs.parameters.model_config }}` }}'
           - name: schema
@@ -80,12 +82,15 @@ spec:
       - --interactions {{ `{{ inputs.parameters.interactions }}` }}
       - --transform-layer {{ `{{ outputs.parameters.transform_layer }}` }}
       - --model-config {{ `{{ outputs.parameters.model_config }}` }}
+      - --encoded-interactions {{ `{{ outputs.parameters.encoded_interactions }}` }}
     outputs:
       parameters:
         - name: transform_layer
           value: '{{ .Values.workflow.outputs.transform.transform_layer }}'
         - name: model_config
           value: '{{ .Values.workflow.outputs.transform.model_config }}'
+        - name: encoded_interactions
+          value: '{{ .Values.workflow.outputs.transform.encoded_interactions }}'
 
   - name: train
     inputs:

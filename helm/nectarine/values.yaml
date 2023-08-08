@@ -8,5 +8,6 @@ workflow:
     transform:
       transform_layer: /outputs/transform_layer.pickle
       model_config: /outputs/model_config.json
+      encoded_interactions: /outputs/encoded.csv
     train:
       model: /outputs/model

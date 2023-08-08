@@ -12,17 +12,19 @@ from nectarine import Extractor
 @click.option("--items-path", "--items", "items", required=True)
 @click.option("--schema-path", "--schema", "schema", required=True)
 @click.option("--interactions-path", "--interactions", "interactions", required=True)
-@click.option("--transform-layer", "interactions")
-@click.option("--model-config", "interactions")
+@click.option("--encoded-interactions", "--encoded", "encoded")
+@click.option("--transform-layer", "transform_layer")
+@click.option("--model-config", "model_config")
 def transform(
     interactions: str,
     users: str,
     items: str,
     schema: str,
+    encoded: str = None,
     transform_layer: str = None,
     model_config: str = None,
 ):
-    x = pd.read_csv(interactions)
+    x: pd.DataFrame = pd.read_csv(interactions)
 
     with open(schema, "r") as f:
         schema = json.load(f)
@@ -34,6 +36,8 @@ def transform(
 
     with open(model_config, "w") as config_fp:
         json.dump(model_config, config_fp)
+
+    x.to_csv(encoded, index=None)
 
 
 if __name__ == "__main__":
