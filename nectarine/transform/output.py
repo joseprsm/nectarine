@@ -27,4 +27,8 @@ class TransformOutput(nn.Module):
         return features
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(users={self.users.shape}, items={self.items.shape})"
+        return (
+            f"{self.__class__.__name__}("
+            f"users={self.users.shape}, "
+            f"items={self.items.shape})"
+        )
