@@ -2,6 +2,7 @@ import jax.numpy as jnp
 import pandas as pd
 from flax import linen as nn
 
+from .output import TransformOutput
 from .transform import FeatureTransformer
 
 
@@ -32,6 +33,8 @@ class Extractor:
         user_transformer, user_lookup = fit_transformer("user")
         item_transformer, item_lookup = fit_transformer("item")
 
+        transform_layer = TransformOutput(user_lookup, item_lookup)
+
         def encode(x_):
             x_ = user_transformer.encode(x_)
             x_ = item_transformer.encode(x_)
@@ -40,4 +43,6 @@ class Extractor:
         x = X.copy(deep=True)
         x = encode(x)
 
-        return x, user_lookup, item_lookup
+        model_config = {}
+
+        return x, transform_layer, model_config
