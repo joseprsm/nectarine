@@ -17,7 +17,7 @@ class Extractor:
             inputs = pd.read_csv(input_path)
             ids, features = transformer.fit(inputs).transform(inputs)
             outputs = pd.DataFrame(features, ids.reshape(-1).astype(int))
-            return transformer, outputs
+            return transformer, outputs.sort_index().values
 
         user_transformer, users = fit_transformer("user")
         item_transformer, items = fit_transformer("item")

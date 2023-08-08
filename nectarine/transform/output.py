@@ -22,9 +22,10 @@ class TransformOutput(nn.Module):
         ids = ids.reshape(-1, 1)
         features = jnp.take(data, ids, axis=0)
         # todo: confirm features shape is always (1, 1, ..., n)
-        features = features.reshape(-1, features.shape[-1])
-        features = jnp.concatenate([ids, features], axis=1)
-        return features
+        if features.shape[-1] != 0:
+            features = features.reshape(-1, features.shape[-1])
+            return jnp.concatenate([ids, features], axis=1)
+        return ids
 
     def __repr__(self) -> str:
         return (
