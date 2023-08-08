@@ -6,16 +6,12 @@ from .tower import Tower
 
 
 class Recommender(nn.Module):
-    schema: dict
     config: dict
     transform: TransformOutput
 
-    def setup(self):
-        self.query_model = Tower(**self.config["query"])
-        self.candidate_model = Tower(**self.config["candidate"])
-
+    @nn.compact
     def __call__(self, user_id: jnp.ndarray, item_id: jnp.ndarray):
         user, item = self.transform(user_id, item_id)
-        query_embeddings = self.query_model(**user)
-        candidate_embeddings = self.candidate_model(**item)
+        query_embeddings = Tower(**self.config["query"])(user)
+        candidate_embeddings = Tower(**self.config["candidate"])(item)
         return query_embeddings, candidate_embeddings
