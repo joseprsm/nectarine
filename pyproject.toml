@@ -22,3 +22,15 @@ dependencies = { file = ["requirements.txt"] }
 [tool.isort]
 profile = "black"
 lines_after_imports = 2
+
+[tool.coverage.paths]
+source = ["nectarine"]
+
+[tool.coverage.run]
+branch = true
+source = ["nectarine"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["if __name__ == .__main__.:", "_cmd"]
+omit = ["*/__init__.py"]
