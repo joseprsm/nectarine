@@ -1,28 +1,17 @@
+import json
 import os
 import string
+import tempfile
 
-import jax
 import numpy as np
 import pandas as pd
 
-from nectarine import Extractor, Recommender
-from nectarine.train.__main__ import (
-    RNG,
-    TEST_SIZE,
-    create_train_state,
-    train,
-    train_and_evaluate,
-)
+from nectarine.train.__main__ import train
 from nectarine.transform.__main__ import transform
 
 
 transform = transform.callback
 train = train.callback
-
-schema = {
-    "user": {"user_id": "id", "age": "number", "gender": "category"},
-    "item": {"item_id": "id"},
-}
 
 
 def create_data(dirname: str = "data"):
@@ -46,22 +35,44 @@ def create_data(dirname: str = "data"):
             "item_id": np.random.choice(items.item_id, size=1000),
         }
     )
+    interactions_path = os.path.join(dirname, "interactions.csv")
+    interactions.to_csv(interactions_path, index=None)
 
-    return interactions, users_path, items_path
+    schema = {
+        "user": {"user_id": "id", "age": "number", "gender": "category"},
+        "item": {"item_id": "id"},
+    }
+    schema_path = os.path.join(dirname, "schema.json")
+    with open(schema_path, "w") as fp:
+        json.dump(schema, fp)
+
+    return interactions_path, users_path, items_path, schema_path
 
 
 def test_workflow():
-    interactions, users_path, items_path = create_data("data")
-    df, transform_layer, model_config = Extractor(schema, users_path, items_path)(
-        interactions
-    )
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        interactions_path, users_path, items_path, schema_path = create_data(tmpdirname)
 
-    df = df.sample(frac=1, random_state=1).astype(int)
-    cutoff = np.floor(df.shape[0] * TEST_SIZE).astype(int)
-    _, train_data = df.iloc[:cutoff], df.iloc[cutoff:]
+        output_dir = os.path.join(tmpdirname, "outputs")
+        os.makedirs(output_dir, exist_ok=True)
 
-    model = Recommender(config=model_config, transform=transform_layer)
+        encoded = os.path.join(output_dir, "encoded.csv")
+        model_config = os.path.join(output_dir, "config.json")
+        transform_layer = os.path.join(output_dir, "transform")
 
-    rng, init_rng = jax.random.split(RNG)
-    state = create_train_state(model, init_rng)
-    state = train_and_evaluate(model, state, train_data, rng, epochs=1)
+        transform(
+            interactions_path,
+            users_path,
+            items_path,
+            schema_path,
+            encoded=encoded,
+            model_config=model_config,
+            transform_layer=transform_layer,
+        )
+
+        train(
+            encoded=encoded,
+            transform_layer=transform_layer,
+            model_config=model_config,
+            model_path="data/outputs/model",
+        )
