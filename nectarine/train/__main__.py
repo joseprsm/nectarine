@@ -91,22 +91,17 @@ def train_and_evaluate(model, state, train_data, rng, epochs: int = NUM_EPOCHS):
 
 @click.command()
 @click.option("--encoded-path", "--encoded", "encoded", required=True)
-@click.option("--schema-path", "--schema", "schema", required=True)
 @click.option("--transform-layer", "--transform", "transform_layer", required=True)
-@click.option("--model-config", "--config", "model_config")
+@click.option("--model-config", "--config", "model_config", required=True)
 @click.option("--model-path", "model")
 def train(
     encoded: str,
-    schema: str,
     transform_layer: str,
     model_config: str = None,
     model_path: str = None,
 ):
     with open(transform_layer, "rb") as fp:
         transform_layer = pickle.load(fp)
-
-    with open(schema, "r") as fp:
-        schema = json.load(fp)
 
     with open(model_config, "r") as fp:
         model_config = json.load(fp)
