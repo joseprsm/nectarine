@@ -1,3 +1,7 @@
+image:
+  uri: ghcr.io/joseprsm/nectarine
+  tag: latest
+
 workflow:
   outputs:
     load:

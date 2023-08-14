@@ -71,7 +71,7 @@ spec:
       - name: items
       - name: interactions
     container:
-      image: ghcr.io/joseprsm/nectarine
+      image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
       command:
       - python -m
       - nectarine.transform
@@ -98,7 +98,7 @@ spec:
       - name: schema
       - name: transform_layer
     container:
-      image: ghcr.io/joseprsm/nectarine
+      image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
       command:
       - python -m
       - nectarine.train
