@@ -3,7 +3,7 @@ import jax.numpy as jnp
 from flax import linen as nn
 
 
-class TransformOutput(nn.Module):
+class Transform(nn.Module):
     users: jnp.ndarray
     items: jnp.ndarray
 

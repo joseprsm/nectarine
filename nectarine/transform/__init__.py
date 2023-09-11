@@ -1,3 +1,3 @@
 from .extract import Extractor
-from .output import TransformOutput
+from .output import Transform
 from .transform import FeatureTransformer

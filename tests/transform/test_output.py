@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from nectarine.transform import TransformOutput
+from nectarine.transform import Transform
 
 
 @pytest.mark.parametrize(
@@ -16,4 +16,4 @@ from nectarine.transform import TransformOutput
     ],
 )
 def test_transform_output(users, items, user_ids, item_ids):
-    TransformOutput(users, items).apply({}, user_ids, item_ids)
+    Transform(users, items).apply({}, user_ids, item_ids)
