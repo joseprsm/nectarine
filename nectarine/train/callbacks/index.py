@@ -1,5 +1,6 @@
 import tensorflow as tf
-from rexify.models.index import BruteForce, ScaNN
+
+from ..models.index import BruteForce, ScaNN
 
 
 class _IndexCallback(tf.keras.callbacks.Callback):

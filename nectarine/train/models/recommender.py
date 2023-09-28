@@ -1,12 +1,11 @@
-import pandas as pd
 import tensorflow as tf
-from rexify.models.callbacks import BruteForceCallback
-from rexify.models.ranking import RankingMixin
-from rexify.models.retrieval import RetrievalMixin
-from rexify.utils import get_sample_query
+import tensorflow_recommenders as tfrs
+
+from .candidate import CandidateModel
+from .query import QueryModel
 
 
-class Recommender(RetrievalMixin, RankingMixin):
+class Recommender(tfrs.Model):
     """The main Recommender model.
 
     It expects a `tf.data.Dataset`, composed of two keys: "query" and "candidate";
@@ -48,47 +47,20 @@ class Recommender(RetrievalMixin, RankingMixin):
 
     """
 
-    def __init__(
-        self,
-        user_dims: int,
-        item_dims: int,
-        user_embeddings: pd.DataFrame,
-        item_embeddings: pd.DataFrame,
-        session_history: pd.DataFrame,
-        window_size: int = 3,
-        embedding_dim: int = 32,
-        feature_layers: list[int] = None,
-        output_layers: list[int] = None,
-        ranking_features: list[str] = None,
-        ranking_layers: list[int] = None,
-        ranking_weights: dict[str, float] = None,
-    ):
-        RetrievalMixin.__init__(
-            self,
-            user_dims=user_dims + 1,
-            item_dims=item_dims + 1,
-            user_embeddings=user_embeddings,
-            item_embeddings=item_embeddings,
-            session_history=session_history,
-            window_size=window_size,
-            embedding_dim=embedding_dim,
-            feature_layers=feature_layers,
-            output_layers=output_layers,
-        )
+    def __init__(self, config: dict):
+        self.query_model = QueryModel(config["query"])
+        self.candidate_model = CandidateModel(config["candidate"])
+        self.retrieval_task = tfrs.tasks.Retrieval()
 
-        RankingMixin.__init__(
-            self,
-            ranking_features=ranking_features,
-            layer_sizes=ranking_layers,
-            weights=ranking_weights,
+    def call(self, inputs, training=False):
+        return (
+            self.query_model(inputs["query"], training=training),
+            self.candidate_model(inputs["candidate"], training=training),
         )
 
     def compute_loss(self, inputs, training: bool = False) -> tf.Tensor:
-        embeddings = self(
-            inputs, training=training
-        )  # Recommender inherits RetrievalMixin's call method
-        loss = RetrievalMixin.get_loss(self, *embeddings)
-        loss += RankingMixin.get_loss(self, *embeddings, inputs["rank"])
+        embeddings = self(inputs, training=training)
+        loss = self.retrieval_task(*embeddings)
         return loss
 
     def fit(
@@ -99,7 +71,7 @@ class Recommender(RetrievalMixin, RankingMixin):
         callbacks: list[tf.keras.callbacks.Callback] = None,
         validation_data=None,
     ):
-        callbacks = callbacks if callbacks else self._get_callbacks(x, batch_size)
+        callbacks = callbacks or self._get_callbacks(x, batch_size)
         # todo: validate number of index callbacks
         #   - can't be more than a single index for each model (query, candidate)
 
@@ -130,21 +102,24 @@ class Recommender(RetrievalMixin, RankingMixin):
     @staticmethod
     def _get_callbacks(x, batch_size: int = None) -> list[tf.keras.callbacks.Callback]:
         # required to set index shapes
-        sample_query = get_sample_query(x)["query"]
+        sample_query = ...
 
         def get_index_callback():
             try:
                 import scann  # noqa: F401
-                from rexify.models.callbacks import ScaNNCallback
+
+                from nectarine.train.callbacks import ScaNNCallback
 
                 return ScaNNCallback(sample_query, batch_size=batch_size)
 
             except ImportError:
+                from nectarine.train.callbacks import BruteForceCallback
+
                 return BruteForceCallback(sample_query, batch_size=batch_size)
 
         def get_mlflow_callback():
             try:
-                from rexify.models.callbacks import MlflowCallback
+                from nectarine.train.callbacks import MlflowCallback
 
                 return MlflowCallback()
 

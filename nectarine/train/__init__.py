@@ -1,1 +1,1 @@
-from .models.recommender import Recommender
+from .models import Recommender
