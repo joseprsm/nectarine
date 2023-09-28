@@ -48,8 +48,8 @@ class Recommender(tfrs.Model):
     """
 
     def __init__(self, config: dict):
-        self.query_model = QueryModel(config["query"])
-        self.candidate_model = CandidateModel(config["candidate"])
+        self.query_model = QueryModel(**config["query"])
+        self.candidate_model = CandidateModel(**config["candidate"])
         self.retrieval_task = tfrs.tasks.Retrieval()
 
     def call(self, inputs, training=False):
