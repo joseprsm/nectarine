@@ -47,6 +47,8 @@ class Recommender(tfrs.Model):
     """
 
     def __init__(self, config: dict):
+        super().__init__()
+        self._config = config
         self.query_model = QueryModel(**config["query"])
         self.candidate_model = CandidateModel(**config["candidate"])
         self.retrieval_task = tfrs.tasks.Retrieval()
@@ -84,15 +86,7 @@ class Recommender(tfrs.Model):
         )
 
     def get_config(self):
-        return {
-            "item_dims": self._item_dims,
-            "user_dims": self._user_dims,
-            "output_layers": self._output_layers,
-            "feature_layers": self._feature_layers,
-            "ranking_layers": self._ranking_layers,
-            "ranking_features": self._ranking_features,
-            "ranking_weights": self._ranking_weights,
-        }
+        return {"config": self._config}
 
     @classmethod
     def load(cls, export_dir: str) -> tf.keras.Model:
