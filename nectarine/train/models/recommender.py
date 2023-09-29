@@ -1,8 +1,7 @@
 import tensorflow as tf
 import tensorflow_recommenders as tfrs
 
-from .candidate import CandidateModel
-from .query import QueryModel
+from .tower import CandidateModel, QueryModel
 
 
 class Recommender(tfrs.Model):
