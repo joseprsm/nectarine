@@ -22,7 +22,7 @@ class _IndexCallback(tf.keras.callbacks.Callback):
 
     def set(self) -> tf.keras.Model:
         query_model = getattr(self.model, self._query_model)
-        return self.INDEX(query_model, self.model.window_size, **self._index_args)
+        return self.INDEX(query_model, **self._index_args)
 
     def on_train_end(self, logs=None):
         index = self.set()
