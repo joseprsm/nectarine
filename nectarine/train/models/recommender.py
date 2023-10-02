@@ -72,10 +72,6 @@ class Recommender(tfrs.Model):
         callbacks: list[tf.keras.callbacks.Callback] = None,
         validation_data=None,
     ):
-        callbacks = callbacks or self._get_callbacks(x, batch_size)
-        # todo: validate number of index callbacks
-        #   - can't be more than a single index for each model (query, candidate)
-
         if batch_size:
             x = x.batch(batch_size)
             if validation_data:
@@ -91,35 +87,3 @@ class Recommender(tfrs.Model):
     @classmethod
     def load(cls, export_dir: str) -> tf.keras.Model:
         return tf.saved_model.load(export_dir)
-
-    @staticmethod
-    def _get_callbacks(x, batch_size: int = None) -> list[tf.keras.callbacks.Callback]:
-        # required to set index shapes
-        sample_query = list(x.batch(1).take(1))[0]
-
-        def get_index_callback():
-            try:
-                import scann  # noqa: F401
-
-                from nectarine.train.callbacks import ScaNNCallback
-
-                return ScaNNCallback(sample_query, batch_size=batch_size)
-
-            except ImportError:
-                from nectarine.train.callbacks import BruteForceCallback
-
-                return BruteForceCallback(sample_query, batch_size=batch_size)
-
-        def get_mlflow_callback():
-            try:
-                from nectarine.train.callbacks import MlflowCallback
-
-                return MlflowCallback()
-
-            except ImportError:
-                return
-
-        callbacks = [get_index_callback(), get_mlflow_callback()]
-        callbacks = callbacks[:-1] if callbacks[-1] is None else callbacks
-
-        return callbacks
