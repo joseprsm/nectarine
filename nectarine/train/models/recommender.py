@@ -95,7 +95,7 @@ class Recommender(tfrs.Model):
     @staticmethod
     def _get_callbacks(x, batch_size: int = None) -> list[tf.keras.callbacks.Callback]:
         # required to set index shapes
-        sample_query = ...
+        sample_query = list(x.batch(1).take(1))[0]
 
         def get_index_callback():
             try:
