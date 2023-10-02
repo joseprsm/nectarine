@@ -19,7 +19,6 @@ class Tower(tf.keras.Model):
 
         self.embedding_layer = tf.keras.layers.Embedding(n_dims + 1, embedding_dim)
         self.feature_model = self._create_model(layer_sizes=self._feature_layers)
-        self.output_model = self._create_model(layer_sizes=self._output_layers)
 
     @abstractmethod
     def call(self, inputs, training: bool = None):
@@ -37,10 +36,12 @@ class Tower(tf.keras.Model):
     def _create_model(
         layer_sizes: list[int],
         layer: tf.keras.layers.Layer = tf.keras.layers.Dense,
+        input_shape: tuple[int] = None,
         name: str = None,
         **kwargs,
     ):
-        layers = [layer(num_neurons, **kwargs) for num_neurons in layer_sizes]
+        layers = [tf.keras.Input(shape=input_shape)] if input_shape else []
+        layers += [layer(num_neurons, **kwargs) for num_neurons in layer_sizes]
         return tf.keras.Sequential(layers, name)
 
 
@@ -53,6 +54,10 @@ class CandidateModel(Tower):
         output_layers: list[int] = None,
     ):
         super().__init__(n_items, embedding_dim, feature_layers, output_layers)
+        self.output_model = self._create_model(
+            self._output_layers,
+            input_shape=(None, self._embedding_dim + self._feature_layers[-1]),
+        )
 
     def call(self, inputs, *_):
         embedding = self.embedding_layer(inputs["id"])
@@ -78,7 +83,7 @@ class QueryModel(Tower):
         super().__init__(n_users, embedding_dim, feature_layers, output_layers)
         self._session_layers = session_layers or [32, 32]
 
-        self._session_embedding_layer = tf.keras.layers.Embedding(
+        self.session_embedding_layer = tf.keras.layers.Embedding(
             input_dim=n_items,
             output_dim=embedding_dim,
         )
@@ -88,8 +93,18 @@ class QueryModel(Tower):
             layer_sizes=self._session_layers[:-1],
             return_sequences=True,
         )
-        session_output = tf.keras.layers.LSTM(self._session_layers[-1])
+        session_output = tf.keras.layers.LSTM(
+            self._session_layers[-1], return_sequences=False
+        )
         self.session_model.add(session_output)
+
+        output_dim = (
+            self._embedding_dim + self._feature_layers[-1] + self._session_layers[-1]
+        )
+        self.output_model = self._create_model(
+            layer_sizes=self._output_layers,
+            input_shape=(None, output_dim),
+        )
 
     def call(self, inputs, *_):
         embedding = self.embedding_layer(inputs["id"])
@@ -98,7 +113,7 @@ class QueryModel(Tower):
         features = self.feature_model(inputs["features"])
 
         sessions = tf.cast(inputs["session"], tf.int32)
-        sessions = self._session_embedding_layer(sessions)
+        sessions = self.session_embedding_layer(sessions)
         sessions = self.session_model(sessions)
 
         x = tf.concat([embedding, features, sessions], axis=1)
