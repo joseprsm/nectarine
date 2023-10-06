@@ -1,3 +1,4 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
@@ -5,109 +6,47 @@ metadata:
 spec:
   entrypoint: transform
   templates:
-  - name: main
-    steps:
-    - - name: load
-        template: load
-        arguments:
-          parameters:
-          - name: schema_uri
-          - name: users_uri
-          - name: items_uri
-          - name: interactions_uri
-    - - name: transform
-        dependencies: [load]
-        template: transform
-        arguments:
-          parameters:
-          - name:  schema
-            value: '{{ `{{ steps.load.outputs.parameters.schema }}` }}'
-          - name: users
-            value: '{{ `{{ steps.load.outputs.parameters.users }}` }}'
-          - name: items
-            value: '{{ `{{ steps.load.outputs.parameters.items }}` }}'
-          - name: interactions
-            value: '{{ `{{ steps.load.outputs.parameters.interactions }}` }}'
-    - - name: train
-        dependencies: [transform]
-        template: train
-        arguments:
-          parameters:
-          - name: interactions
-            value: '{{ `{{ steps.transform.outputs.parameters.model_config }}` }}'
-          - name: model_config
-            value: '{{ `{{ steps.transform.outputs.parameters.model_config }}` }}'
-          - name: schema
-            value: '{{ `{{ steps.load.outputs.parameters.schema }}` }}'
-          - name: transform_layer
-            value: '{{ `{{ steps.transform.outputs.parameters.transform_layer }}` }}'
-
-  - name: load
-    inputs:
-      parameters:
-      - name: schema_uri
-      - name: users_uri
-      - name: items_uri
-      - name: interactions_uri
-    container:
-      image: amazon/aws-cli
-      command: []
-    outputs:
-      parameters:
-      - name: schema
-        value: '{{ .Values.workflow.outputs.load.schema }}'
-      - name: users
-        value: '{{ .Values.workflow.outputs.load.users }}'
-      - name: items
-        value: '{{ .Values.workflow.outputs.load.items }}'
-      - name: interactions
-        value: '{{ .Values.workflow.outputs.load.interactions }}'
-
-  - name: transform
-    inputs:
-      parameters:
-      - name: schema
-      - name: users
-      - name: items
-      - name: interactions
-    container:
-      image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
-      command:
-      - python -m
-      - nectarine.transform
-      args:
-      - --users {{ `{{ inputs.parameters.users }}` }}
-      - --items {{ `{{ inputs.parameters.items }}` }}
-      - --schema {{ `{{ inputs.parameters.schema }}` }}
-      - --interactions {{ `{{ inputs.parameters.interactions }}` }}
-      - --transform-layer {{ `{{ outputs.parameters.transform_layer }}` }}
-      - --model-config {{ `{{ outputs.parameters.model_config }}` }}
-      - --encoded-interactions {{ `{{ outputs.parameters.encoded_interactions }}` }}
-    outputs:
-      parameters:
-        - name: transform_layer
-          value: '{{ .Values.workflow.outputs.transform.transform_layer }}'
-        - name: model_config
-          value: '{{ .Values.workflow.outputs.transform.model_config }}'
-        - name: encoded_interactions
-          value: '{{ .Values.workflow.outputs.transform.encoded_interactions }}'
-
-  - name: train
-    inputs:
-      parameters:
-      - name: schema
-      - name: transform_layer
-    container:
-      image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
-      command:
-      - python -m
-      - nectarine.train
-      args:
-      - --schema-path {{ `{{ inputs.parameters.schema }}` }}
-      - --transform-layer {{ `{{ inputs.parameters.transform_layer }}` }}
-      - --model-config {{ `{{ inputs.parameters.model_config }}` }}
-      - --model-path {{ `{{ outputs.parameters.model }}` }}
-    outputs:
-      parameters:
-      - name: model
-        value: '{{ .Values.workflow.outputs.train.model }}'
+    - name: main
+      steps:
+        - - name: transform:users
+            templateRef: &template-ref
+              name: nectarine-template
+              template: transform
+            arguments:
+              parameters:
+              - name: target
+                value: users
+          - name: transform:items
+            templateRef:
+              <<: *template-ref
+            arguments:
+              parameters:
+              - name: target
+                value: items
+        - - name: transform:interactions
+            templateRef:
+              <<: *template-ref
+            arguments:
+              parameters:
+              - name: target
+                value: interactions
+        - - name: train
+            dependencies: [transform]
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: nectarine-template
+spec:
+  entrypoint:
+  templates:
+    - name: transform
+      container:
+        image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
+        command:
+          - python -m
+          - nectarine.transform
+        args:
+          - --target {{ inputs.parameters.target }}
+          - --data {{ inputs.parameters.data }}
+          - --schema {{ inputs.parameters.schema }}
