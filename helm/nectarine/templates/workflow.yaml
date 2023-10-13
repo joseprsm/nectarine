@@ -9,8 +9,8 @@ spec:
     - name: main
       steps:
         - - name: transform:users
-            templateRef: &template-ref
-              name: nectarine-transform-template
+            templateRef: &transform-template
+              name: nectarine-template
               template: transform
             arguments:
               parameters:
@@ -18,27 +18,28 @@ spec:
                 value: users
           - name: transform:items
             templateRef:
-              <<: *template-ref
+              <<: *transform-template
             arguments:
               parameters:
               - name: target
                 value: items
         - - name: transform:interactions
             templateRef:
-              <<: *template-ref
+              <<: *transform-template
             arguments:
               parameters:
               - name: target
                 value: interactions
         - - name: train
-            dependencies: [transform]
+            templateRef: &transform-template
+              name: nectarine-template
+              template: train
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: nectarine-transform-template
+  name: nectarine-template
 spec:
-  entrypoint:
   templates:
     - name: transform
       container:
@@ -49,11 +50,26 @@ spec:
         args:
           - --target {{ `{{ inputs.parameters.target }}` }}
           - --data {{ `{{ inputs.parameters.data }}` }}
-          - --schema {{ `{{ inputs.parameters.schema }}` }}
+          - --schema /nectarine/config/schema.yaml
         volumeMounts:
           - name: schema
-            mountPath: /etc/config
+            mountPath: /nectarine/config
       volumes:
         - name: schema
           configMap:
             name: nectarine-data-schema
+    - name: train
+      container:
+        image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
+        command:
+          - python -m
+          - nectarine.train
+        args:
+          - --config /nectarine/config/config.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /nectarine/config
+      volumes:
+        - name: config
+          configMap:
+            name: nectarine-model-config
