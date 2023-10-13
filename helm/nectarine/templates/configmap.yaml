@@ -5,4 +5,4 @@ metadata:
   name: nectarine-data-schema
 data:
   schema.yaml: |-
-    {{ .Files.Get .Values.schema }}
+    {{ .Values.schema | nindent 4 }}

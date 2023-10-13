@@ -2,4 +2,10 @@ image:
   uri: ghcr.io/joseprsm/nectarine
   tag: latest
 
-schema: schema.yaml
+schema: |
+  version: v1
+  schema:
+    user:
+      user_id: id
+    item:
+      item_id: id

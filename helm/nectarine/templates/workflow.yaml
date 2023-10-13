@@ -4,13 +4,13 @@ kind: Workflow
 metadata:
   generateName: nectarine-
 spec:
-  entrypoint: transform
+  entrypoint: main
   templates:
     - name: main
       steps:
         - - name: transform:users
             templateRef: &template-ref
-              name: nectarine-template
+              name: nectarine-transform-template
               template: transform
             arguments:
               parameters:
@@ -36,7 +36,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: nectarine-template
+  name: nectarine-transform-template
 spec:
   entrypoint:
   templates:
@@ -50,3 +50,10 @@ spec:
           - --target {{ `{{ inputs.parameters.target }}` }}
           - --data {{ `{{ inputs.parameters.data }}` }}
           - --schema {{ `{{ inputs.parameters.schema }}` }}
+        volumeMounts:
+          - name: schema
+            mountPath: /etc/config
+      volumes:
+        - name: schema
+          configMap:
+            name: nectarine-data-schema
