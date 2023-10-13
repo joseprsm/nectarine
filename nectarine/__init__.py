@@ -1,5 +1,4 @@
-from .train import Recommender
-from .transform import Transform
+from .train import Recommender, Train
 
 
 __version__ = "0.0.0"
