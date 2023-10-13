@@ -47,6 +47,6 @@ spec:
           - python -m
           - nectarine.transform
         args:
-          - --target {{ inputs.parameters.target }}
-          - --data {{ inputs.parameters.data }}
-          - --schema {{ inputs.parameters.schema }}
+          - --target {{ `{{ inputs.parameters.target }}` }}
+          - --data {{ `{{ inputs.parameters.data }}` }}
+          - --schema {{ `{{ inputs.parameters.schema }}` }}

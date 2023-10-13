@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nectarine-data-schema
+data:
+  schema.json: |-
+    {{ .Files.Get .Values.schema }}

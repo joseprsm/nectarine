@@ -2,16 +2,4 @@ image:
   uri: ghcr.io/joseprsm/nectarine
   tag: latest
 
-workflow:
-  outputs:
-    load:
-      schema: /outputs/schema.json
-      users: /outputs/users.csv
-      items: /outputs/items.csv
-      interactions: /outputs/interactions.csv
-    transform:
-      transform_layer: /outputs/transform_layer.pickle
-      model_config: /outputs/model_config.json
-      encoded_interactions: /outputs/encoded.csv
-    train:
-      model: /outputs/model
+schema: schema.json
