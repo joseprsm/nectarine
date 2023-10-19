@@ -2,10 +2,76 @@ image:
   uri: ghcr.io/joseprsm/nectarine
   tag: latest
 
-schema: |
-  version: v1
-  schema:
-    user:
-      user_id: id
-    item:
-      item_id: id
+namespace: nectarine
+
+schema: |-
+  interaction:
+    user_id: id
+    item_id: id
+  user:
+    user_id: id
+    # age: number
+    # gender: category
+  item:
+    item_id: id
+    # brand: category
+    # price: number
+
+config: |-
+  model:
+    type: two_tower  # Choose between the different model architectures
+    hyperparameters:
+      num_epochs: 10
+      learning_rate: 0.001
+      # Optional hyperparameters:
+      # - batch_size: 64
+      # - embedding_dim: 64
+      # - dropout_rate: 0.2
+      # - regularization_strength: 0.001
+
+  recommendations:
+  - name: "user_to_item"  # Name for user-item recommendations
+    type: user-item
+    num_recommendations: 10
+    filter:
+      - name: "electronic_items"
+        target: "category"
+        op: "equal"
+        value: "electronics"
+        # Other possible filters for user-item recommendations:
+        # - name: "price_range"
+        #   target: "price"
+        #   op: "range"
+        #   value: "50-200"
+        # - name: "age_range"
+        #   target: "age"
+        #   op: "range"
+        #   value: "18-35"
+
+  - name: "item_to_item"  # Name for item-item recommendations
+    type: item-item
+    num_recommendations: 20
+    filter:
+      - name: "dynamic_price"
+        target: "price"
+        op: "range"
+        value: "20%"
+        dynamic: true
+        # Other possible filters for item-item recommendations:
+        # - name: "related_category"
+        #   target: "category"
+        #   op: "equal"
+        #   value: "computers"
+        # - name: "dynamic_brand"
+        #   target: "brand"
+        #   op: "equal"
+        #   dynamic: true
+
+# secrets:
+#   aws:
+#     access_key_id: "your-aws-access-key-id"
+#     secret_access_key: "your-aws-secret-access-key"
+#     region: "us-east-1"
+#   gcp:
+#     credentials: "path/to/your-gcs-credentials.json"
+#     project_id: "your-gcp-project-id"

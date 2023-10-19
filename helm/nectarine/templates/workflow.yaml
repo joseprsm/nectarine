@@ -31,7 +31,7 @@ spec:
               - name: target
                 value: interactions
         - - name: train
-            templateRef: &transform-template
+            templateRef:
               name: nectarine-template
               template: train
 ---
@@ -51,13 +51,16 @@ spec:
           - --target {{ `{{ inputs.parameters.target }}` }}
           - --data {{ `{{ inputs.parameters.data }}` }}
           - --schema /nectarine/config/schema.yaml
+          - --config /nectarine/config/config.yaml
         volumeMounts:
-          - name: schema
+          - &config-volume-mount
+            name: config-vol
             mountPath: /nectarine/config
       volumes:
-        - name: schema
+        - &config-volume
+          name: config-vol
           configMap:
-            name: nectarine-data-schema
+            name: nectarine-config
     - name: train
       container:
         image: '{{ .Values.image.uri }}:{{ .Values.image.tag }}'
@@ -67,9 +70,6 @@ spec:
         args:
           - --config /nectarine/config/config.yaml
         volumeMounts:
-        - name: config
-          mountPath: /nectarine/config
+        - *config-volume-mount
       volumes:
-        - name: config
-          configMap:
-            name: nectarine-model-config
+        - *config-volume

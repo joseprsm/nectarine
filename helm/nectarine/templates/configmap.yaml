@@ -6,3 +6,5 @@ metadata:
 data:
   schema.yaml: |-
     {{ .Values.schema | nindent 4 }}
+  config.yaml: |-
+    {{ .Values.config | nindent 4 }}
