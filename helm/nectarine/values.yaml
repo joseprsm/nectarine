@@ -67,11 +67,4 @@ config: |-
         #   op: "equal"
         #   dynamic: true
 
-# secrets:
-#   aws:
-#     access_key_id: "your-aws-access-key-id"
-#     secret_access_key: "your-aws-secret-access-key"
-#     region: "us-east-1"
-#   gcp:
-#     credentials: "path/to/your-gcs-credentials.json"
-#     project_id: "your-gcp-project-id"
+# serviceAccount:

@@ -4,6 +4,9 @@ kind: Workflow
 metadata:
   generateName: nectarine-
 spec:
+  {{- if .Values.serviceAccount }}
+  serviceAccountName: {{ .Values.serviceAccount }}
+  {{- end }}
   entrypoint: main
   templates:
     - name: main
