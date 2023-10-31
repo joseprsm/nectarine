@@ -13,6 +13,8 @@ _ENCODER_MAPPING = {
 
 
 class Transform(ColumnTransformer):
+    _feature_index: dict[str, list[int]]
+
     def __init__(self, config: dict, target: str):
         self.target = target
         self.config = config
@@ -20,6 +22,7 @@ class Transform(ColumnTransformer):
         super().__init__(transformers=[], remainder="drop")
 
     def __enter__(self):
+        # todo: add connection to feature store
         return self
 
     def __call__(self, X: pd.DataFrame):
@@ -29,9 +32,8 @@ class Transform(ColumnTransformer):
         pass
 
     def fit(self, X: pd.DataFrame):
-        header = X.columns.to_list()
-
-        def get_feature_indices(schema: dict[str, str], target: str):
+        def get_feature_indices(schema: dict[str, str]) -> dict[str, list[int]]:
+            header = X.columns.to_list()
             idx = {feature_type: [] for feature_type in _ENCODER_MAPPING.keys()}
             for feature, feature_type in schema.items():
                 mask = np.array(header) == feature
@@ -45,6 +47,12 @@ class Transform(ColumnTransformer):
                 if len(index) > 0
             ]
 
-        feature_index = get_feature_indices(self.schema, self.target)
-        self.transformers = get_transformers(feature_index)
-        return super().fit(X)
+        self._feature_index = get_feature_indices(self.schema)
+        self.transformers = get_transformers(self._feature_index)
+        return super().fit(X.values)
+
+    def transform(self, X):
+        transformed: np.ndarray = super().transform(X.values)
+        encoded_id = transformed[:, [-1]]  # assumes it's the last transformation made
+        transformed = np.delete(transformed, -1, axis=1)
+        return encoded_id, transformed
