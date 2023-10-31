@@ -1,2 +1,1 @@
-from .models import Recommender
-from .step import Train
+from ._train import Train
