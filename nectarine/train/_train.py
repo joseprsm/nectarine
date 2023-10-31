@@ -5,7 +5,7 @@ from .models import Recommender
 
 class Train:
     def __init__(self, config: dict) -> None:
-        self._config = config
+        self._config: dict[str, dict] = config
 
     def __enter__(self):
         return self
@@ -16,7 +16,11 @@ class Train:
         training_data: pd.DataFrame,
         validation_data: pd.DataFrame = None,
     ) -> Recommender:
-        hyperparameters = self._config["model"]["hyperparameters"]
+        hyperparameters = (
+            self._config["model"]["hyperparameters"]
+            if "hyperparameters" in self._config["model"].keys()
+            else {}
+        )
 
         _ = model.fit(
             training_data,
