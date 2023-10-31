@@ -32,23 +32,8 @@ class Transform(ColumnTransformer):
         pass
 
     def fit(self, X: pd.DataFrame):
-        def get_feature_indices(schema: dict[str, str]) -> dict[str, list[int]]:
-            header = X.columns.to_list()
-            idx = {feature_type: [] for feature_type in _ENCODER_MAPPING.keys()}
-            for feature, feature_type in schema.items():
-                mask = np.array(header) == feature
-                idx[feature_type] += np.where(mask)[0].tolist()
-            return idx
-
-        def get_transformers(index_dict: dict[str, list]):
-            return [
-                tuple(_ENCODER_MAPPING[feature_type](index))
-                for feature_type, index in index_dict.items()
-                if len(index) > 0
-            ]
-
-        self._feature_index = get_feature_indices(self.schema)
-        self.transformers = get_transformers(self._feature_index)
+        self._feature_index = self._get_feature_indices(self.schema, X.columns.values)
+        self.transformers = self._get_transformers(self._feature_index)
         return super().fit(X.values)
 
     def transform(self, X):
@@ -56,3 +41,20 @@ class Transform(ColumnTransformer):
         encoded_id = transformed[:, [-1]]  # assumes it's the last transformation made
         transformed = np.delete(transformed, -1, axis=1)
         return encoded_id, transformed
+
+    @staticmethod
+    def _get_transformers(index_dict: dict[str, list]):
+        return [
+            tuple(_ENCODER_MAPPING[feature_type](index))
+            for feature_type, index in index_dict.items()
+            if len(index) > 0
+        ]
+
+    @staticmethod
+    def _get_feature_indices(
+        schema: dict[str, str], header: np.ndarray
+    ) -> dict[str, list[int]]:
+        idx = {feature_type: [] for feature_type in _ENCODER_MAPPING.keys()}
+        for feature, feature_type in schema.items():
+            idx[feature_type] += np.where(header == feature)[0].tolist()
+        return idx
