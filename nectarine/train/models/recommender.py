@@ -81,6 +81,8 @@ class Recommender(tfrs.Model):
         callbacks: list[tf.keras.callbacks.Callback] = None,
         validation_data=None,
     ):
+        self.compile()
+
         if batch_size:
             x = x.batch(batch_size)
             if validation_data:
