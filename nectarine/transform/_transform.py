@@ -25,25 +25,32 @@ class Transform(ColumnTransformer):
         # todo: add connection to feature store
         return self
 
-    def __call__(self, X: pd.DataFrame):
+    def __call__(self, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         return self.fit(X).transform(X)
 
     def __exit__(self, *_):
         pass
 
     def fit(self, X: pd.DataFrame):
-        self._feature_index = self._get_feature_indices(self.schema, X.columns.values)
-        self.transformers = self._get_transformers(self._feature_index)
+        feature_index = self._get_feature_indices(self.schema, X.columns.values)
+        if self.target == "interactions":
+            _ = feature_index.pop("id")
+            feature_index["id"] = []
+            self.remainder = "passthrough"
+        self.transformers = self._get_transformers(feature_index)
         return super().fit(X.values)
 
-    def transform(self, X):
+    def transform(self, X) -> tuple[np.ndarray, np.ndarray]:
         transformed: np.ndarray = super().transform(X.values)
-        encoded_id = transformed[:, [-1]]  # assumes it's the last transformation made
-        transformed = np.delete(transformed, -1, axis=1)
-        return encoded_id, transformed
+        if self.target != "interactions":
+            # assumes it's the last transformation made
+            encoded_id = transformed[:, [-1]]
+            transformed = np.delete(transformed, -1, axis=1)
+            return encoded_id, transformed
+        return transformed[:, -2:], transformed[:, :-2]
 
     @staticmethod
-    def _get_transformers(index_dict: dict[str, list]):
+    def _get_transformers(index_dict: dict[str, list]) -> list[tuple]:
         return [
             tuple(_ENCODER_MAPPING[feature_type](index))
             for feature_type, index in index_dict.items()
