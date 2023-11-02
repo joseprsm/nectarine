@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 
+from .._util import get_dataset
 from .features import CategoryEncoder, IDEncoder, NumberEncoder
 
 
@@ -18,7 +19,7 @@ class Transform(ColumnTransformer):
     def __init__(self, config: dict, target: str):
         self.target = target
         self.config = config
-        self.schema = self.config["datasets"][target]["schema"]
+        self.schema = get_dataset(config, "transform", target)["schema"]
         super().__init__(transformers=[], remainder="drop")
 
     def __enter__(self):
