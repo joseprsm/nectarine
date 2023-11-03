@@ -1,0 +1,41 @@
+transform:
+  datasets:
+    - name: interactions
+      location: data/interactions.csv
+      format: csv
+      schema:
+        user_id: id
+        item_id: id
+        foo: number
+        bar: category
+      foreign_keys:
+        - dataset: users
+          source: user_id
+          target: account_id
+        - dataset: items
+          source: item_id
+          target: item_id
+      # service_account: ...
+    - name: users
+      location: data/users.csv
+      format: csv
+      schema:
+        account_id: id
+        age: number
+        gender: category
+      # service_account: ...
+    - name: items
+      location: data/items.csv
+      format: csv
+      schema:
+        item_id: id
+        price: number
+        brand: category
+      # service_account: ...
+
+train:
+  model: two_tower
+  hyperparameters:
+    num_epochs: 10
+    learning_rate: 0.001
+  dataset: interactions
