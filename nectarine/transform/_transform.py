@@ -46,11 +46,13 @@ class Transform(ColumnTransformer):
 
     def transform(self, X) -> tuple[np.ndarray, np.ndarray]:
         transformed: np.ndarray = super().transform(X.values)
-        if self.target != "interactions":
+
+        if self._has_references():
             # assumes it's the last transformation made
             encoded_id = transformed[:, [-1]]
             transformed = np.delete(transformed, -1, axis=1)
             return encoded_id, transformed
+
         return transformed[:, -2:], transformed[:, :-2]
 
     @staticmethod
