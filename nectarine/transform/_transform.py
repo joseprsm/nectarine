@@ -19,7 +19,8 @@ class Transform(ColumnTransformer):
     def __init__(self, config: dict, target: str):
         self.target = target
         self.config = config
-        self.schema = get_dataset(config, "transform", target)["schema"]
+        self.dataset = get_dataset(config, "transform", target)
+        self.schema = self.dataset.pop("schema")
         super().__init__(transformers=[], remainder="drop")
 
     def __enter__(self):
@@ -34,10 +35,12 @@ class Transform(ColumnTransformer):
 
     def fit(self, X: pd.DataFrame):
         feature_index = self._get_feature_indices(self.schema, X.columns.values)
-        if self.target == "interactions":
+
+        if self._has_references():
             _ = feature_index.pop("id")
             feature_index["id"] = []
             self.remainder = "passthrough"
+
         self.transformers = self._get_transformers(feature_index)
         return super().fit(X.values)
 
@@ -66,3 +69,6 @@ class Transform(ColumnTransformer):
         for feature, feature_type in schema.items():
             idx[feature_type] += np.where(header == feature)[0].tolist()
         return idx
+
+    def _has_references(self):
+        return "references" in self.dataset.keys()
