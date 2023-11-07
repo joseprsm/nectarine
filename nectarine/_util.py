@@ -1,4 +1,4 @@
-def get_dataset(config, step: str, target: str):
+def get_dataset(config, step: str, target: str) -> dict:
     def check_name(x):
         return x["name"] == target
 
