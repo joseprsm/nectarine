@@ -1,1 +1,1 @@
-from .recommender import Recommender
+from .two_tower import TwoTower
