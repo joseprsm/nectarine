@@ -18,9 +18,9 @@ class TwoTower(nn.Module):
         item_embeddings = CandidateTower(**self.config["candidate"])(item)
         return user_embeddings, item_embeddings
 
-    @staticmethod
     @jax.jit
-    def retrieval(state: TrainState, user: features, item: features):
+    @staticmethod
+    def retrieval(state: TrainState, query: features, candidate: features):
         def categorical_crossentropy(y_true, y_pred):
             epsilon = 1e-8
             y_pred = jnp.clip(y_pred, a_min=-10, a_max=10)
@@ -29,7 +29,7 @@ class TwoTower(nn.Module):
             return jnp.mean(loss)
 
         def loss_fn(params):
-            embeddings = state.apply_fn({"params": params}, user, item)
+            embeddings = state.apply_fn({"params": params}, query, candidate)
             query_embeddings, candidate_embeddings = tuple(map(jnp.squeeze, embeddings))
             scores = jnp.matmul(query_embeddings, jnp.transpose(candidate_embeddings))
             n_queries, n_candidates, *_ = scores.shape
