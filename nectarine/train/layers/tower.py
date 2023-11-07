@@ -8,7 +8,6 @@ class _Tower(nn.Module):
     feature_layers: list[int] = None
     output_layers: list[int] = None
 
-    @nn.compact
     def feature_model(self, features, activation: str = None):
         x = features
         for layer in self.feature_layers:
@@ -17,7 +16,6 @@ class _Tower(nn.Module):
                 x = getattr(nn, activation)(x)
         return x
 
-    @nn.compact
     def output(self, *args):
         x = jnp.concatenate(args, axis=1)
         x = nn.LayerNorm()(x)
