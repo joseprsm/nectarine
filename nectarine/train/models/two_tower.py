@@ -3,7 +3,7 @@ import jax.numpy as jnp
 from flax import linen as nn
 from flax.training.train_state import TrainState
 
-from ..layers.tower import CandidateTower, QueryTower
+from ..layers import CandidateTower, QueryTower
 
 
 features = dict[str, jnp.ndarray]
