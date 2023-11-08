@@ -3,20 +3,38 @@ import jax.numpy as jnp
 from flax import linen as nn
 from flax.training.train_state import TrainState
 
-from ..layers import CandidateTower, QueryTower
+from ..layers.tower import CandidateTower, QueryTower
 
 
 features = dict[str, jnp.ndarray]
 
 
 class TwoTower(nn.Module):
-    config: dict
+    n_users: int
+    n_items: int
+    embedding_dim: int = 16
+    feature_layers: list[int] = None
+    output_layers: list[int] = None
 
-    @nn.compact
+    def setup(self):
+        self.query_tower = QueryTower(
+            n_dims=self.n_users,
+            embedding_dim=self.embedding_dim,
+            feature_layers=self.feature_layers,
+            output_layers=self.output_layers,
+        )
+
+        self.candidate_tower = CandidateTower(
+            n_dims=self.n_items,
+            embedding_dim=self.embedding_dim,
+            feature_layers=self.feature_layers,
+            output_layers=self.output_layers,
+        )
+
     def __call__(self, user: features, item: features):
-        user_embeddings = QueryTower(**self.config["query"])(user)
-        item_embeddings = CandidateTower(**self.config["candidate"])(item)
-        return user_embeddings, item_embeddings
+        query_embeddings = self.query_tower(user)
+        candidate_embeddings = self.candidate_tower(item)
+        return query_embeddings, candidate_embeddings
 
     @jax.jit
     @staticmethod
@@ -30,8 +48,8 @@ class TwoTower(nn.Module):
 
         def loss_fn(params):
             embeddings = state.apply_fn({"params": params}, query, candidate)
-            query_embeddings, candidate_embeddings = tuple(map(jnp.squeeze, embeddings))
-            scores = jnp.matmul(query_embeddings, jnp.transpose(candidate_embeddings))
+            embeddings = tuple(map(jnp.squeeze, embeddings))
+            scores: jnp.ndarray = jnp.matmul(embeddings, jnp.transpose(embeddings[1]))
             n_queries, n_candidates, *_ = scores.shape
 
             labels = jnp.eye(n_queries, n_candidates)
