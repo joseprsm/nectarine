@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 
-from .._util import get_dataset
+from .._config import Config
 from .features import CategoryEncoder, IDEncoder, NumberEncoder
 
 
@@ -16,10 +16,10 @@ _ENCODER_MAPPING = {
 class Transform(ColumnTransformer):
     _feature_index: dict[str, list[int]]
 
-    def __init__(self, config: dict, target: str):
+    def __init__(self, config: str | dict, target: str):
         self.target = target
-        self.config = config
-        self.dataset = get_dataset(config, "transform", target)
+        self.config = Config(config) if isinstance(config, str) else config
+        self.dataset = self.get_dataset(target)
         self.schema = self.dataset.pop("schema")
         super().__init__(transformers=[], remainder="drop")
 
@@ -74,3 +74,9 @@ class Transform(ColumnTransformer):
 
     def _has_references(self):
         return "references" in self.dataset.keys()
+
+    def get_dataset(self, target: str = None) -> dict:
+        def check_name(x):
+            return x["name"] == target
+
+        return next(filter(check_name, self.config["transform"]["datasets"])).copy()
