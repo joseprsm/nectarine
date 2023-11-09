@@ -19,7 +19,7 @@ class Transform(ColumnTransformer):
     def __init__(self, config: str | dict, target: str):
         self.target = target
         self.config = Config(config) if isinstance(config, str) else config
-        self.dataset = self.get_dataset(target)
+        self.dataset = self.get_dataset()
         self.schema = self.dataset.pop("schema")
         super().__init__(transformers=[], remainder="drop")
 
