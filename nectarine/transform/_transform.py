@@ -75,8 +75,8 @@ class Transform(ColumnTransformer):
     def _has_references(self):
         return "references" in self.dataset.keys()
 
-    def get_dataset(self, target: str = None) -> dict:
+    def get_dataset(self) -> dict:
         def check_name(x):
-            return x["name"] == target
+            return x["name"] == self.target
 
         return next(filter(check_name, self.config["transform"]["datasets"])).copy()
